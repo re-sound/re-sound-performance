@@ -1,6 +1,37 @@
 # Testing guide for Windows 11
 
-This document walks through cloning, building and running re_sound Performance on a Windows 11 machine.
+This document walks through two paths for running re_sound Performance on a Windows 11 machine: downloading a pre-built ZIP from Releases (recommended for non-developers) or cloning and building from source (for developers).
+
+## Fast path: download the pre-built ZIP
+
+The easiest way to try the app as an end user would.
+
+1. Open https://github.com/re-sound/re-sound-performance/releases/latest
+2. Under **Assets**, click `re_sound_performance-v0.0.1-test-win-x64-portable.zip` to download
+3. Open **File Explorer**, right-click the downloaded ZIP, choose **Extract All**
+4. Enter the extracted folder
+5. Right-click `re_sound_performance.exe` and choose **Run as administrator**
+6. Windows SmartScreen may show a warning (builds are not code-signed yet). Click **More info**, then **Run anyway**
+7. Accept the UAC prompt
+8. The main window opens
+
+File hashes are in `SHA256SUMS.txt` if you want to verify the download:
+
+```powershell
+(Get-FileHash .\re_sound_performance-v0.0.1-test-win-x64-portable.zip -Algorithm SHA256).Hash
+```
+
+Compare the output against the portable line in `SHA256SUMS.txt`.
+
+### Alternative ZIP: framework-dependent (smaller, requires .NET runtime)
+
+If you already have .NET 8 Desktop Runtime installed (or want to install it first with `winget install Microsoft.DotNet.DesktopRuntime.8`), download `re_sound_performance-v0.0.1-test-win-x64-fxdependent.zip` instead. Same extract-and-run flow.
+
+---
+
+## Developer path: clone, build, run
+
+This section walks through cloning, building and running from source.
 
 ## Prerequisites
 
@@ -125,11 +156,12 @@ Open one of the JSON files to inspect the snapshot format.
 
 ## Known limitations at this stage
 
-- The UI currently only populates the System tweaks page. Privacy, Debloat and GPU pages are placeholders.
-- Per-game tabs are not implemented yet.
+- The UI currently only populates the System tweaks page with System, Input, Power and Network category tweaks. Privacy, Debloat and GPU pages are placeholders.
+- Per-game tabs are not implemented yet (CS2, Valorant and Apex pages say "Implementation pending").
 - Benchmarking is not implemented yet.
-- No auto-update mechanism yet.
-- Windows SmartScreen may warn because the build is not code-signed. Right-click the exe and choose "Run as administrator" -> "More info" -> "Run anyway" for testing.
+- No auto-update mechanism yet. Manual ZIP replacement on new releases.
+- Windows SmartScreen warns because the build is not code-signed. Right-click the exe and choose "Run as administrator" then "More info" then "Run anyway". Code signing ships with v1.0 via SignPath Foundation.
+- The `v0.0.1-test` tag is a throwaway internal build. First public alpha will be `v0.1.0-alpha`.
 
 ## Reporting issues
 

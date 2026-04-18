@@ -10,7 +10,14 @@ This document tracks the state of the project and the ordered list of pending wo
 - 23 tweaks registered in the catalog
 - 17 xunit tests passing on Linux build
 - CI workflow (windows-latest) builds, runs tests and checks `dotnet format`
+- Release workflow publishes signed-less Windows ZIPs on every `v*` tag push
+- First release live: `v0.0.1-test` at https://github.com/re-sound/re-sound-performance/releases/tag/v0.0.1-test (portable ZIP + framework-dependent ZIP + SHA256SUMS)
 - Complete research knowledge base in `docs/research/` (13 documents, ~65000 words)
+
+### Known CI issues (not blocking release)
+
+- `dotnet format --verify-no-changes` fails on Windows runner due to line-ending style enforcement. A `.gitattributes` was added to force LF via renormalize. The CI should pass on the next push but has not been verified yet.
+- The Release workflow does not run `dotnet format` so it produces valid builds regardless.
 
 ### Tweak catalog (23 tweaks)
 
