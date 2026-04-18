@@ -43,6 +43,20 @@ public partial class App : Application
         services.AddSingleton<RestorePointManager>();
 
         services.AddSingleton<ITweak, DisableXboxGameBarTweak>();
+        services.AddSingleton<ITweak, DisableGameDvrTweak>();
+        services.AddSingleton<ITweak, DisableMouseAccelerationTweak>();
+        services.AddSingleton<ITweak, DisableStickyKeysTweak>();
+        services.AddSingleton<ITweak, DisableTelemetryTweak>();
+        services.AddSingleton<ITweak, DisableActivityHistoryTweak>();
+        services.AddSingleton<ITweak, DisableAdvertisingIdTweak>();
+        services.AddSingleton<ITweak, DisableCopilotTweak>();
+        services.AddSingleton<ITweak, DisableMultiPlaneOverlayTweak>();
+        services.AddSingleton<ITweak, SystemResponsivenessGamingTweak>();
+        services.AddSingleton<ITweak, DisableEdgeStartupBoostTweak>();
+        services.AddSingleton<ITweak, DisableStartupTipsTweak>();
+        services.AddSingleton<ITweak, EnableShaderCacheUnlimitedTweak>();
+        services.AddSingleton<ITweak, DisableSearchIndexingFullTweak>();
+        services.AddSingleton<ITweak, DisableLocationTrackingTweak>();
 
         services.AddSingleton<TweakEngine>();
 

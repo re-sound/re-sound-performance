@@ -22,7 +22,7 @@ public partial class SystemTweaksPage : Page
         TweaksList.Items.Clear();
         foreach (var tweak in _engine.AvailableTweaks)
         {
-            if (tweak.Metadata.Category != TweakCategory.System)
+            if (tweak.Metadata.Category is not TweakCategory.System and not TweakCategory.Input)
             {
                 continue;
             }
