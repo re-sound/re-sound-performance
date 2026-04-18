@@ -3,7 +3,9 @@ using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using re_sound_performance.Core.Backup;
+using re_sound_performance.Core.Power;
 using re_sound_performance.Core.Registry;
+using re_sound_performance.Core.Services;
 using re_sound_performance.Core.Tweaks;
 using re_sound_performance.Core.Tweaks.Implementations;
 using re_sound_performance.Views;
@@ -33,6 +35,8 @@ public partial class App : Application
         services.AddLogging(builder => builder.SetMinimumLevel(LogLevel.Information));
 
         services.AddSingleton<IRegistryAccess, WindowsRegistryAccess>();
+        services.AddSingleton<IServiceManager, WindowsServiceManager>();
+        services.AddSingleton<IPowerCfgRunner, WindowsPowerCfgRunner>();
 
         var backupRoot = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -57,6 +61,14 @@ public partial class App : Application
         services.AddSingleton<ITweak, EnableShaderCacheUnlimitedTweak>();
         services.AddSingleton<ITweak, DisableSearchIndexingFullTweak>();
         services.AddSingleton<ITweak, DisableLocationTrackingTweak>();
+        services.AddSingleton<ITweak, DisableDiagTrackServiceTweak>();
+        services.AddSingleton<ITweak, DisableMapsBrokerTweak>();
+        services.AddSingleton<ITweak, DisableNduServiceTweak>();
+        services.AddSingleton<ITweak, DisableFaxAndRetailDemoTweak>();
+        services.AddSingleton<ITweak, DisableXboxServicesTweak>();
+        services.AddSingleton<ITweak, DisableWerAndSysMainTweak>();
+        services.AddSingleton<ITweak, EnableUltimatePerformancePlanTweak>();
+        services.AddSingleton<ITweak, DisableHibernationTweak>();
 
         services.AddSingleton<TweakEngine>();
 
