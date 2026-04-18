@@ -1,209 +1,135 @@
 # re_sound Performance Roadmap
 
-This document tracks the state of the project and the ordered list of pending work.
+This document tracks the state of the project and the ordered list of pending work. Read this first when picking the project up again.
 
-## Current state (snapshot)
+## Current state (snapshot, 2026-04-18)
 
-- Repository live at https://github.com/re-sound/re-sound-performance
-- Apache 2.0 license
-- .NET 8 WPF solution with three projects (main app, Core engine, tests)
-- 23 tweaks registered in the catalog
-- 17 xunit tests passing on Linux build
-- CI workflow (windows-latest) builds, runs tests and checks `dotnet format`
-- Release workflow publishes signed-less Windows ZIPs on every `v*` tag push
-- First release live: `v0.0.1-test` at https://github.com/re-sound/re-sound-performance/releases/tag/v0.0.1-test (portable ZIP + framework-dependent ZIP + SHA256SUMS)
+- Repository: https://github.com/re-sound/re-sound-performance (Apache 2.0)
+- .NET 8 WPF solution, three projects: main app, `Core` engine, xunit tests
+- **33 tweaks** registered across System, Privacy, Debloat, GPU, Input, Network, Power categories
+- **30 xunit tests** passing (Linux + Windows CI)
+- CI workflow builds, runs tests, runs `dotnet format`
+- Release workflow publishes portable + framework-dependent ZIPs on every `v*` tag
 - Complete research knowledge base in `docs/research/` (13 documents, ~65000 words)
 
-### Known CI issues (not blocking release)
+### Releases
 
-- `dotnet format --verify-no-changes` fails on Windows runner due to line-ending style enforcement. A `.gitattributes` was added to force LF via renormalize. The CI should pass on the next push but has not been verified yet.
-- The Release workflow does not run `dotnet format` so it produces valid builds regardless.
-
-### Tweak catalog (23 tweaks)
-
-Category | Count | Tweaks
----------|-------|-------
-System | 9 | Xbox Game Bar, Game DVR + FSE, MPO, MMCSS SystemResponsiveness, Edge Startup Boost, Maps Broker, Fax/RetailDemo/WMP/Biometric, Xbox services (Medium), WER + SysMain (Medium)
-Input | 2 | Enhance Pointer Precision, Sticky/Filter/Toggle Keys
-Privacy | 8 | Telemetry, Activity History, Advertising ID, Copilot + Recall, Tips & Consumer Features, Bing and Web Search, Location Tracking, DiagTrack services
-Network | 1 | NDU (non-paged pool memory leak fix)
-Power | 2 | Ultimate Performance plan, Hibernation + Fast Startup
-GPU | 1 | DirectX Shader Cache 10 GB
+Tag | Date | Notes
+----|------|-------
+`v0.0.1-test` | 2026-04-?? | First public build, 23 tweaks, post-apply probe
+`v0.0.2-test` | 2026-04-18 | Post-apply verifier pill, UI polish, +10 tweaks (schtasks + Appx), Privacy/Debloat/GPU pages wired
+`v0.0.3-test` | 2026-04-18 | Single-instance guard, TweakStateCache (no more 1-by-1 reload), UsoSvc tweak, UI redesign (Synapse-style violet `#7C3AED`)
 
 ### Abstractions in place
 
-Domain | Abstraction | Helper | Notes
--------|-------------|--------|-------
-Registry | IRegistryAccess | RegistryTweakHelper | Multi-value Apply/Probe/Revert with JSON snapshot backup
-Services | IServiceManager | ServiceTweakHelper | Backed by registry writes on HKLM SYSTEM CurrentControlSet Services
-Power | IPowerCfgRunner | (inline in tweaks) | Wraps powercfg.exe via Process.Start
-Backup | IBackupStore + FileSystemBackupStore | | Granular per-tweak backups under LocalAppData
-System Restore | RestorePointManager | | WMI SystemRestore wrapper
+Domain | Abstraction | Helper | Backing
+-------|-------------|--------|--------
+Registry | `IRegistryAccess` | `RegistryTweakHelper` | `Microsoft.Win32`
+Services | `IServiceManager` | `ServiceTweakHelper` | HKLM registry writes
+Power | `IPowerCfgRunner` | (inline) | `powercfg.exe` via `Process.Start`
+Scheduled tasks | `IScheduledTaskManager` (with `TrySetState`/`SetStateOutcome`) | `ScheduledTaskHelper` | `schtasks.exe`
+UWP (Appx) | `IAppxManager` | — | `powershell.exe` (Get/Remove-AppxPackage, Remove-AppxProvisionedPackage)
+Backup | `IBackupStore` + `FileSystemBackupStore` | | Per-tweak JSON under LocalAppData
+System Restore | `RestorePointManager` | | WMI SystemRestore
+**Tweak state cache (new in v0.0.3)** | `TweakStateCache` | | `ConcurrentDictionary` + `StateChanged`/`ProbingProgress` events
+**Single-instance guard (new in v0.0.3)** | `SingleInstanceGuard` | | `Local\` Mutex + `FindWindow`/`SetForegroundWindow`
+
+### Non-obvious decisions worth remembering
+
+- **Appx revert is informational, not a true reverse.** Once `Remove-AppxProvisionedPackage` runs the package cannot be restored without the original `.appx`. Revert returns `NotApplied` with a message pointing at the Microsoft Store.
+- **OneDrive debloat is deferred.** Needs a Win32 uninstaller abstraction (`%SystemRoot%\SysWOW64\OneDriveSetup.exe /uninstall`). Placeholder slot still shown in the research doc; `RemoveLegacyMediaAppsTweak` fills the 8th Appx slot in the meantime.
+- **`DisableUpdateOrchestratorTasksTweak` keeps returning `Unavailable`.** Those tasks are protected by TrustedInstaller. The helper detects Access Denied and produces a friendly message ("use a service-based tweak instead") instead of red `Error`. `DisableUsoSvcTweak` is the working alternative (disables `UsoSvc` + `WaaSMedicSvc`, same practical effect, works with plain Administrator).
+- **Probes run in parallel once at startup** via `TweakEngine.ProbeAllAsync` fire-and-forget from `App.OnStartup`. Cards read from `TweakStateCache` synchronously and subscribe to `StateChanged`, so tab switches are instant and never redraw 1-by-1 again.
+- **Mutex uses `Local\` namespace, not `Global\`.** Single-instance is per user/session, which is what we want; `Global\` would need explicit SID access rights even for an elevated app.
+- **Failed pill for probe-mismatch is intentional.** If `ApplyAsync` returns Success but the post-apply probe says `NotApplied`, we mark as `Failed` with "Post-apply verification mismatch: changes did not take effect." — catches GPO / anti-cheat overrides.
+- **UI design tokens live in `Themes/Colors.xaml` and `Themes/Styles.xaml`.** No more hardcoded RGB inside controls. Category colors, risk colors, card surfaces and typography are `StaticResource` keys.
+
+### Tweak catalog (33 tweaks)
+
+Category | Count | Representative tweaks
+---------|-------|----------------------
+System | 10 | Xbox Game Bar, Game DVR + FSE, MPO, MMCSS SystemResponsiveness, Edge Startup Boost, Maps Broker, Fax/RetailDemo, Xbox services (Medium), WER + SysMain (Medium), **UsoSvc (new)**
+Input | 2 | Enhance Pointer Precision, Sticky/Filter/Toggle Keys
+Privacy | 10 | Telemetry, Activity History, Advertising ID, Copilot + Recall, Tips, Bing/Web Search, Location Tracking, DiagTrack services, Telemetry schtasks, Update Orchestrator schtasks (Unavailable w/o TrustedInstaller)
+Network | 1 | NDU non-paged pool fix
+Power | 2 | Ultimate Performance plan, Hibernation + Fast Startup
+GPU | 1 | DirectX Shader Cache 10 GB
+Debloat | 8 | Teams consumer, Clipchamp, Bing apps, Xbox consumer, Copilot, Recall/AI, Stock annoyances, Legacy media (Groove/Movies/Solitaire/OneNote)
 
 ---
 
-## Next steps (ordered by priority)
+## Next sprint — pick one when resuming
 
-### 1. Hardware and anti-cheat detection (required before more UI work)
-
-**Goal:** provide context so the UI can filter tweaks and block dangerous combinations.
+### 1. Hardware + anti-cheat detection *(unblocks presets and per-game tabs)*
 
 Files to create:
 
-- `Core/Detection/HardwareInfo.cs` (record: CPU vendor, CPU family hybrid flag, GPU vendor, GPU model, OS build, RAM, primary storage type)
-- `Core/Detection/IHardwareDetector.cs`
-- `Core/Detection/WmiHardwareDetector.cs` (uses System.Management WMI: Win32_Processor, Win32_VideoController, Win32_PhysicalMemory, Win32_DiskDrive)
-- `Core/Detection/AntiCheatStatus.cs` (enum: None, Vanguard, FaceitAc, Eac, BattleEye, Multiple)
-- `Core/Detection/IAntiCheatDetector.cs`
-- `Core/Detection/WindowsAntiCheatDetector.cs` (checks: services vgc/vgk presence, C:\Program Files\Riot Vanguard folder, EasyAntiCheat installations under common game paths, BattlEye services)
-- Tests for both detectors with mocked dependencies
+- `Core/Detection/HardwareInfo.cs` — record: CPU vendor, hybrid flag, GPU vendor/model, OS build, RAM GB, primary storage kind (HDD/SSD/NVMe)
+- `Core/Detection/IHardwareDetector.cs`, `WmiHardwareDetector.cs` — uses `System.Management` WMI (`Win32_Processor`, `Win32_VideoController`, `Win32_PhysicalMemory`, `Win32_DiskDrive`)
+- `Core/Detection/AntiCheatStatus.cs` — enum `None | Vanguard | FaceitAc | Eac | BattleEye | Multiple`
+- `Core/Detection/IAntiCheatDetector.cs`, `WindowsAntiCheatDetector.cs` — checks for services `vgc`/`vgk`, folder `C:\Program Files\Riot Vanguard`, EasyAntiCheat under common game install paths, BattlEye services
+- Tests with mocked registry/file/service dependencies
 
-Register in DI. Populate `HomePage` with detected info.
+Wire into DI, surface on `HomePage` above the stat row, and enforce `Metadata.BlockedWhenVanguardInstalled` / `BlockedWhenFaceitInstalled` in the toggle handler (right now the flags exist but nothing reads them).
 
-### 2. Scheduled Tasks abstraction
-
-**Goal:** disable telemetry and feedback scheduled tasks known to cause background CPU.
+### 2. Preset selector on HomePage
 
 Files to create:
 
-- `Core/Tasks/IScheduledTaskManager.cs` (Exists, GetState, Enable, Disable)
-- `Core/Tasks/WindowsScheduledTaskManager.cs` (wraps `schtasks.exe` or uses `Microsoft.Win32.TaskScheduler` NuGet package)
-- `Core/Tasks/ScheduledTaskChange.cs` (Path, TargetState)
-- `Core/Tasks/ScheduledTaskHelper.cs` (Apply/Probe/Revert pattern like Services)
-- `Tests/Tasks/InMemoryScheduledTaskManager.cs` and `ScheduledTaskHelperTests.cs`
+- `Core/Presets/Preset.cs`, `PresetCatalog.cs` (Safe / Balanced / Competitive), `PresetRunner.cs`
+- HomePage: three preset cards under the hero with preview dialog + progress bar + cancellation
 
-New tweaks:
+Draft preset content is in the previous roadmap entry; reuse.
 
-- `privacy.disable_telemetry_scheduled_tasks` (Microsoft\Windows\Application Experience\ProgramDataUpdater, StartupAppTask, Microsoft Compatibility Appraiser, Microsoft-Windows-DiskDiagnosticDataCollector, Microsoft\Windows\Customer Experience Improvement Program\Consolidator, UsbCeip, KernelCeipTask, Microsoft\Windows\Feedback\Siuf\DmClient, DmClientOnScenarioDownload, QueueReporting)
-- `system.disable_update_orchestrator_tasks` (optional, Medium risk)
+### 3. Per-game tabs (CS2, Valorant, Apex)
 
-### 3. UWP apps (Appx) abstraction for the Debloat tab
+Research ready in `docs/research/06-cs2-optimization.md`, `07-valorant-optimization.md`, `08-apex-optimization.md`. Key files:
 
-**Goal:** remove stock UWP bloat (Teams consumer, Clipchamp, Bing apps, Xbox app when user does not use it).
+- `Core/Games/{Cs2,Valorant,Apex}/...` autoexec / GameUserSettings / videoconfig editors and pro config import
+- `Core/Games/IGameDetector.cs` (Steam path for cs2.exe, Riot path for VALORANT-Win64-Shipping.exe, Origin/EA for r5apex.exe)
+- Valorant page must show Vanguard compatibility matrix and refuse VBS/HVCI toggles when Valorant is installed (prevents `VAN:RESTRICTION`).
+- Apex page must detect launcher (Steam vs EA App) and warn EA App users that `+` launch options are ignored.
 
-Files to create:
+### 4. Benchmarking integration (Intel PresentMon 2.0)
 
-- `Core/Appx/IAppxManager.cs` (GetInstalled, RemoveProvisioned, RemoveForCurrentUser)
-- `Core/Appx/PowerShellAppxManager.cs` (spawns pwsh.exe with `Get-AppxPackage`, `Remove-AppxPackage`, `Get-AppxProvisionedPackage`, `Remove-AppxProvisionedPackage`)
-- `Core/Appx/AppxPackage.cs`
-- `Core/Appx/AppxTweakHelper.cs` (Apply/Probe/Revert via re-provision does not fully restore - backup stores original package family names)
-- Tests with InMemoryAppxManager
+Research: `docs/research/11-benchmarking-integracion.md`. Files:
 
-New tweaks (one per package family grouped by purpose):
+- `Core/Benchmark/IPresentMonRunner.cs`, `PresentMonCli.cs` (CSV v2 schema)
+- `FrameStats.cs`, `FrameStatsCalculator.cs` (avg + integral 1% low conventions)
+- `BenchmarkComparer.cs` — weighted verdict: 30% avg + 50% 1% low + 20% latency
+- `BenchmarkPage.xaml` with ScottPlot live graph and wizard (baseline → apply → post)
 
-- `debloat.remove_teams_consumer` (MicrosoftTeams)
-- `debloat.remove_clipchamp` (Clipchamp.Clipchamp)
-- `debloat.remove_bing_apps` (Microsoft.BingNews, Microsoft.BingWeather, Microsoft.BingSearch)
-- `debloat.remove_xbox_apps_consumer` (Microsoft.XboxApp, Microsoft.GamingApp, Microsoft.Xbox.TCUI, Microsoft.XboxGamingOverlay, Microsoft.XboxIdentityProvider, Microsoft.XboxSpeechToTextOverlay)
-- `debloat.remove_onedrive` (Medium risk, requires `%SystemRoot%\SysWOW64\OneDriveSetup.exe /uninstall` in addition to Appx)
-- `debloat.remove_copilot_app` (Microsoft.Copilot)
-- `debloat.remove_recall_app` (Microsoft.Windows.AI.Copilot)
-- `debloat.remove_stock_annoyances` (Microsoft.GetHelp, Microsoft.Getstarted, Microsoft.WindowsFeedbackHub, Microsoft.MixedReality.Portal)
+### 5. Auto-update + signed builds (towards v1.0)
 
-### 4. Wire Privacy, Debloat and GPU pages
+Research: `docs/research/13-ecosistema-produccion.md`.
 
-**Goal:** the Privacy, Debloat and GPU navigation items already exist. They are empty placeholders. Reuse the `SystemTweaksPage` loading pattern filtered by the appropriate `TweakCategory`.
-
-No new tweaks required. Pattern copy:
-
-```csharp
-foreach (var tweak in _engine.AvailableTweaks)
-{
-    if (tweak.Metadata.Category != TweakCategory.Privacy) continue;
-    ...
-}
-```
-
-### 5. Preset selector on HomePage
-
-**Goal:** one-click application of curated tweak sets.
-
-Data structure:
-
-- `Core/Presets/Preset.cs` (Name, Description, TweakIds list, RiskLevel)
-- `Core/Presets/PresetCatalog.cs` (static list: Safe, Balanced, Competitive)
-- `Core/Presets/PresetRunner.cs` (applies sequence of tweaks with progress reporting)
-
-Preset content draft:
-
-Preset | Included tweaks
--------|----------------
-Safe | Only risk=Safe tweaks, no anti-cheat-risky changes. Example: Xbox Game Bar, Game DVR, MPO, mouse acceleration, accessibility shortcuts, telemetry, activity history, advertising ID, tips, web search, shader cache, Ndu, Edge Startup Boost, Maps Broker, Fax/RetailDemo legacy services
-Balanced | Safe + Ultimate Performance, Disable Hibernation, SystemResponsiveness for gaming, DiagTrack services
-Competitive | Balanced + Copilot/Recall + Xbox services (when user confirms no Game Pass use) + location tracking disable + additional per-game profile import
-
-HomePage receives three cards with preview dialog before apply. Progress bar with cancellation.
-
-### 6. Per-game tabs (CS2, Valorant, Apex)
-
-**Goal:** dedicated pages with launch options editors, autoexec templates and pro config import.
-
-Approach:
-
-- `Core/Games/GameProfile.cs` (GameId, Name, AntiCheat, SupportedConfigs)
-- `Core/Games/IGameDetector.cs` (detects Steam path for cs2.exe, Riot path for VALORANT-Win64-Shipping.exe, Origin/EA path for r5apex.exe)
-- `Core/Games/Cs2/Cs2AutoexecTemplate.cs`, `Cs2LaunchOptionsBuilder.cs`, `Cs2ProConfigs.cs`
-- `Core/Games/Valorant/ValorantGameUserSettingsEditor.cs`, `ValorantEngineIniEditor.cs`, `ValorantProConfigs.cs`, `ValorantVanguardCompatChecker.cs`
-- `Core/Games/Apex/ApexLaunchOptionsBuilder.cs`, `ApexVideoConfigEditor.cs`, `ApexAutoexecTemplate.cs`, `ApexProConfigs.cs`, `ApexLauncherDetector.cs` (Steam vs EA App)
-
-Reference source: `docs/research/06-cs2-optimization.md`, `07-valorant-optimization.md`, `08-apex-optimization.md`.
-
-Special handling:
-
-- Valorant page must show the Vanguard compatibility matrix and block VBS/HVCI toggle access if Valorant is installed. Never apply a tweak that would trigger `VAN:RESTRICTION`.
-- Apex page detects launcher (Steam vs EA App) and warns EA App users that `+` launch options do not work.
-- All three tabs include pro config import with attribution (ProSettings.net linked).
-
-### 7. Benchmarking integration
-
-**Goal:** before/after measurement using Intel PresentMon 2.0.
-
-Files:
-
-- `Core/Benchmark/IPresentMonRunner.cs`
-- `Core/Benchmark/PresentMonCli.cs` (downloads or locates PresentMon-2.0+ binary, parses CSV v2 schema)
-- `Core/Benchmark/FrameStats.cs` (record: FpsAvg, OnePercentLow, ZeroPointOnePercentLow, PcLatencyMs, GpuBusyPercent, stddev)
-- `Core/Benchmark/FrameStatsCalculator.cs` (percentile algorithms with both "average" and "integral" conventions)
-- `Core/Benchmark/BenchmarkComparer.cs` (weighted verdict: 30% avg + 50% 1% low + 20% latency)
-- `BenchmarkPage.xaml` with ScottPlot live graph and wizard (baseline -> apply tweaks -> post)
-
-Reference source: `docs/research/11-benchmarking-integracion.md`.
-
-### 8. Auto-update and signed builds
-
-**Goal:** version 1.0 release distribution pipeline.
-
-Tasks:
-
-- Apply to SignPath Foundation for OSS code signing certificate (free)
+- Apply to SignPath Foundation for free OSS code signing
 - Integrate Velopack for delta auto-updates
-- Add `install.ps1` one-liner installer script
-- Submit to winget community repository
-- Document three distribution channels (one-liner, portable, installer) on README
+- `install.ps1` one-liner
+- Submit to winget community repo
+- Document three distribution channels on README
 
-Reference source: `docs/research/13-ecosistema-produccion.md`.
-
-### 9. Future enhancements (lower priority)
+### 6. Future enhancements (lower priority)
 
 - PresentMon telemetry opt-in (anonymous hardware + tweak deltas)
-- Community profiles (GitHub-backed JSON pro configs for top players, refreshed via CI)
-- Internationalization: start with English and Spanish resource files
-- Accessibility: screen reader labels on all TweakCard elements
-- Theme switching (Light/Dark/System) in Settings page
+- Community profiles (GitHub-backed JSON pro configs, refreshed via CI)
+- i18n: English + Spanish resource files
+- Accessibility: screen reader labels on TweakCard
+- Theme switching (Light/Dark/System) in Settings
 - Configurable `?` tooltip delay
-- Export applied tweaks as shareable JSON (with redacted hardware IDs)
-- Crash reporter with Sentry (self-host or free tier)
+- Export applied tweaks as shareable JSON (redacted hardware IDs)
+- Crash reporter (Sentry self-host or free tier)
 
 ---
 
 ## Out of scope (explicit non-goals)
 
-- BIOS tuning and flashing. Too risky for an unattended tool. Research preserved in `docs/research/12-bios-cpu-ram-tuning.md` for future reference.
-- CPU undervolt wizards (ThrottleStop, XTU, PBO2 Tuner automation). Same reason.
-- RAM timing automation. Belongs in a separate expert-only tool.
-- Overclocking scanner. Not the product we want.
-- Kernel-mode drivers. Unsigned kernel code brings SmartScreen and anti-cheat blocklisting risk.
-- Selling paid tiers. Project stays Apache 2.0, GitHub-hosted, donation-funded.
+- BIOS tuning and flashing. Research preserved in `docs/research/12-bios-cpu-ram-tuning.md` but we do not ship it.
+- CPU undervolt automation (ThrottleStop, XTU, PBO2 Tuner).
+- RAM timing automation.
+- Overclocking scanner.
+- Kernel-mode drivers (SmartScreen / anti-cheat blocklist risk).
+- Paid tiers. Project stays Apache 2.0, GitHub-hosted, donation-funded.
 
 ---
 
