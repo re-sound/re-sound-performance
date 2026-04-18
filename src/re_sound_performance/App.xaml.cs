@@ -2,10 +2,12 @@ using System.IO;
 using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using re_sound_performance.Core.Appx;
 using re_sound_performance.Core.Backup;
 using re_sound_performance.Core.Power;
 using re_sound_performance.Core.Registry;
 using re_sound_performance.Core.Services;
+using re_sound_performance.Core.Tasks;
 using re_sound_performance.Core.Tweaks;
 using re_sound_performance.Core.Tweaks.Implementations;
 using re_sound_performance.Views;
@@ -37,6 +39,8 @@ public partial class App : Application
         services.AddSingleton<IRegistryAccess, WindowsRegistryAccess>();
         services.AddSingleton<IServiceManager, WindowsServiceManager>();
         services.AddSingleton<IPowerCfgRunner, WindowsPowerCfgRunner>();
+        services.AddSingleton<IScheduledTaskManager, WindowsScheduledTaskManager>();
+        services.AddSingleton<IAppxManager, PowerShellAppxManager>();
 
         var backupRoot = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -69,6 +73,18 @@ public partial class App : Application
         services.AddSingleton<ITweak, DisableWerAndSysMainTweak>();
         services.AddSingleton<ITweak, EnableUltimatePerformancePlanTweak>();
         services.AddSingleton<ITweak, DisableHibernationTweak>();
+
+        services.AddSingleton<ITweak, DisableTelemetryScheduledTasksTweak>();
+        services.AddSingleton<ITweak, DisableUpdateOrchestratorTasksTweak>();
+
+        services.AddSingleton<ITweak, RemoveTeamsConsumerTweak>();
+        services.AddSingleton<ITweak, RemoveClipchampTweak>();
+        services.AddSingleton<ITweak, RemoveBingAppsTweak>();
+        services.AddSingleton<ITweak, RemoveXboxAppsConsumerTweak>();
+        services.AddSingleton<ITweak, RemoveCopilotAppTweak>();
+        services.AddSingleton<ITweak, RemoveRecallAppTweak>();
+        services.AddSingleton<ITweak, RemoveStockAnnoyancesTweak>();
+        services.AddSingleton<ITweak, RemoveLegacyMediaAppsTweak>();
 
         services.AddSingleton<TweakEngine>();
 

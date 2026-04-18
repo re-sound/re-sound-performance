@@ -4,25 +4,85 @@
       xmlns:ui="http://schemas.modernwpf.com/2019"
       Title="Home">
     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="40,20">
-        <StackPanel MaxWidth="1000" HorizontalAlignment="Left">
+        <StackPanel MaxWidth="1040" HorizontalAlignment="Left">
             <TextBlock Text="re_sound Performance" FontSize="32" FontWeight="SemiBold" Margin="0,0,0,4" />
             <TextBlock Text="Windows 11 gaming optimization" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" FontSize="16" Margin="0,0,0,24" />
 
-            <ui:SimpleStackPanel Orientation="Vertical" Spacing="12">
-                <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" CornerRadius="8" Padding="20">
-                    <ui:SimpleStackPanel Spacing="8">
-                        <TextBlock Text="System status" FontSize="18" FontWeight="SemiBold" />
-                        <TextBlock Text="Hardware detection and anti-cheat awareness pending implementation." Opacity="0.7" />
-                    </ui:SimpleStackPanel>
+            <!-- Headline stat row -->
+            <Grid Margin="0,0,0,18">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" CornerRadius="10" Padding="18">
+                    <StackPanel>
+                        <TextBlock Text="Total tweaks" FontSize="13" Opacity="0.65" />
+                        <TextBlock x:Name="TotalTweaksText" FontSize="34" FontWeight="SemiBold" Margin="0,4,0,0" />
+                    </StackPanel>
                 </Border>
 
-                <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" CornerRadius="8" Padding="20">
-                    <ui:SimpleStackPanel Spacing="8">
-                        <TextBlock Text="Recommended preset" FontSize="18" FontWeight="SemiBold" />
-                        <TextBlock Text="A preset will be suggested once hardware detection runs for the first time." Opacity="0.7" />
-                    </ui:SimpleStackPanel>
+                <Border Grid.Column="2" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" CornerRadius="10" Padding="18">
+                    <StackPanel>
+                        <TextBlock Text="Applied" FontSize="13" Opacity="0.65" />
+                        <TextBlock x:Name="AppliedTweaksText" FontSize="34" FontWeight="SemiBold" Margin="0,4,0,0" Foreground="{DynamicResource SystemControlHighlightAccentBrush}" />
+                    </StackPanel>
                 </Border>
-            </ui:SimpleStackPanel>
+
+                <Border Grid.Column="4" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" CornerRadius="10" Padding="18">
+                    <StackPanel>
+                        <TextBlock Text="Partial / unavailable" FontSize="13" Opacity="0.65" />
+                        <TextBlock x:Name="PartialTweaksText" FontSize="34" FontWeight="SemiBold" Margin="0,4,0,0" />
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="6" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" CornerRadius="10" Padding="18">
+                    <StackPanel>
+                        <TextBlock Text="High-risk applied" FontSize="13" Opacity="0.65" />
+                        <TextBlock x:Name="HighRiskAppliedText" FontSize="34" FontWeight="SemiBold" Margin="0,4,0,0" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- Risk breakdown -->
+            <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" CornerRadius="10" Padding="20" Margin="0,0,0,12">
+                <StackPanel>
+                    <TextBlock Text="Coverage by risk" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,12" />
+                    <ItemsControl x:Name="RiskBreakdownList">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Vertical" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+            <!-- Category breakdown -->
+            <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" CornerRadius="10" Padding="20" Margin="0,0,0,12">
+                <StackPanel>
+                    <TextBlock Text="Coverage by category" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,12" />
+                    <ItemsControl x:Name="CategoryBreakdownList">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Vertical" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+            <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" CornerRadius="10" Padding="20">
+                <ui:SimpleStackPanel Spacing="6">
+                    <TextBlock Text="Next on the roadmap" FontSize="16" FontWeight="SemiBold" />
+                    <TextBlock Opacity="0.75" TextWrapping="Wrap" Text="Hardware detection with anti-cheat awareness, preset selector (Safe / Balanced / Competitive) and per-game tabs will land in upcoming iterations." />
+                </ui:SimpleStackPanel>
+            </Border>
         </StackPanel>
     </ScrollViewer>
 </Page>

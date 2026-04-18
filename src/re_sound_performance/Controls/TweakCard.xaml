@@ -7,18 +7,41 @@
              mc:Ignorable="d"
              d:DesignHeight="120" d:DesignWidth="900">
 
-    <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-            CornerRadius="8"
-            Padding="16"
-            Margin="0,0,0,8">
+    <Border x:Name="OuterBorder"
+            Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+            BorderThickness="1"
+            BorderBrush="Transparent"
+            CornerRadius="10"
+            Margin="0,0,0,10"
+            SnapsToDevicePixels="True">
+        <Border.Style>
+            <Style TargetType="Border">
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="BorderBrush" Value="{DynamicResource SystemControlHighlightAccentBrush}" />
+                        <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundChromeMediumBrush}" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+        </Border.Style>
+
         <Grid>
             <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="4" />
                 <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <StackPanel Grid.Column="0" Orientation="Vertical">
+            <!-- Category accent stripe -->
+            <Border Grid.Column="0"
+                    x:Name="AccentStripe"
+                    Background="{DynamicResource SystemControlHighlightAccentBrush}"
+                    CornerRadius="10,0,0,10" />
+
+            <!-- Content -->
+            <StackPanel Grid.Column="1" Orientation="Vertical" Margin="16,14,12,14">
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                     <TextBlock x:Name="NameText"
                                FontSize="15"
@@ -57,11 +80,37 @@
                            TextWrapping="Wrap" />
             </StackPanel>
 
-            <Button Grid.Column="1"
+            <!-- Status pill -->
+            <Border Grid.Column="2"
+                    x:Name="StatusPill"
+                    CornerRadius="10"
+                    Padding="10,4"
+                    Margin="0,0,8,0"
+                    VerticalAlignment="Center"
+                    Visibility="Collapsed"
+                    ToolTipService.InitialShowDelay="200"
+                    ToolTipService.ShowDuration="12000">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock x:Name="StatusIcon"
+                               FontSize="12"
+                               FontWeight="Bold"
+                               Foreground="White"
+                               VerticalAlignment="Center"
+                               Margin="0,0,6,0" />
+                    <TextBlock x:Name="StatusText"
+                               FontSize="11"
+                               FontWeight="SemiBold"
+                               Foreground="White"
+                               VerticalAlignment="Center" />
+                </StackPanel>
+            </Border>
+
+            <!-- Help button -->
+            <Button Grid.Column="3"
                     x:Name="HelpButton"
                     Width="28"
                     Height="28"
-                    Margin="12,0,8,0"
+                    Margin="0,0,10,0"
                     VerticalAlignment="Center"
                     Background="Transparent"
                     BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
@@ -89,8 +138,10 @@
                 </Button.ToolTip>
             </Button>
 
-            <ui:ToggleSwitch Grid.Column="2"
+            <!-- Toggle -->
+            <ui:ToggleSwitch Grid.Column="4"
                              x:Name="ApplyToggle"
+                             Margin="0,0,16,0"
                              VerticalAlignment="Center"
                              OnContent="On"
                              OffContent="Off"
