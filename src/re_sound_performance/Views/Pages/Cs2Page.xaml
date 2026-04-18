@@ -1,0 +1,13 @@
+<Page x:Class="re_sound_performance.Views.Pages.Cs2Page"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:ui="http://schemas.modernwpf.com/2019"
+      Title="Counter-Strike 2">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="40,20">
+        <StackPanel MaxWidth="1000" HorizontalAlignment="Left">
+            <TextBlock Text="Counter-Strike 2" FontSize="32" FontWeight="SemiBold" Margin="0,0,0,4" />
+            <TextBlock Text="Launch options, autoexec, video settings, FACEIT requirements" FontSize="14" Opacity="0.7" Margin="0,0,0,24" />
+            <TextBlock Text="Implementation pending" Opacity="0.5" />
+        </StackPanel>
+    </ScrollViewer>
+</Page>

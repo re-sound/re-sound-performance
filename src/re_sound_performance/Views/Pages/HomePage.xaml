@@ -1,0 +1,28 @@
+<Page x:Class="re_sound_performance.Views.Pages.HomePage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:ui="http://schemas.modernwpf.com/2019"
+      Title="Home">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="40,20">
+        <StackPanel MaxWidth="1000" HorizontalAlignment="Left">
+            <TextBlock Text="re_sound Performance" FontSize="32" FontWeight="SemiBold" Margin="0,0,0,4" />
+            <TextBlock Text="Windows 11 gaming optimization" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" FontSize="16" Margin="0,0,0,24" />
+
+            <ui:SimpleStackPanel Orientation="Vertical" Spacing="12">
+                <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" CornerRadius="8" Padding="20">
+                    <ui:SimpleStackPanel Spacing="8">
+                        <TextBlock Text="System status" FontSize="18" FontWeight="SemiBold" />
+                        <TextBlock Text="Hardware detection and anti-cheat awareness pending implementation." Opacity="0.7" />
+                    </ui:SimpleStackPanel>
+                </Border>
+
+                <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" CornerRadius="8" Padding="20">
+                    <ui:SimpleStackPanel Spacing="8">
+                        <TextBlock Text="Recommended preset" FontSize="18" FontWeight="SemiBold" />
+                        <TextBlock Text="A preset will be suggested once hardware detection runs for the first time." Opacity="0.7" />
+                    </ui:SimpleStackPanel>
+                </Border>
+            </ui:SimpleStackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

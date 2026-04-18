@@ -8,16 +8,29 @@ Windows 11 gaming optimization app with per-game profiles, anti-cheat awareness 
 
 ## What it does
 
-re_sound Performance is a Windows 11 optimization tool focused on gaming. It combines:
+re_sound Performance is a Windows 11 optimization tool focused on gaming. The core purpose is to optimize the whole PC for gaming performance, responsiveness and latency. A dedicated tab provides additional per-game tweaks for specific competitive titles.
+
+### Primary focus: system-wide PC gaming optimization
 
 - **Safe system-wide tweaks**: registry, services, scheduled tasks, UWP bloat, telemetry, Copilot, Recall
-- **GPU tweaks**: NVIDIA Profile Inspector + AMD Adrenalin per-game profiles
-- **Per-game optimization tabs**: Counter-Strike 2, Valorant, Apex Legends
-- **Pro configs import**: one-click import of top player settings (s1mple, ZywOo, donk, TenZ, aspas, ImperialHal and others)
+- **Power and kernel**: Ultimate Performance / Bitsum Highest Performance plans, core parking, timer resolution, MPO disable, HAGS configuration
+- **GPU optimization**: NVIDIA Profile Inspector global settings + AMD Adrenalin tuning
+- **Network and input**: NIC power saving, NDU service, mouse acceleration, pointer precision
 - **Anti-cheat detection**: automatic compatibility check for Vanguard, FACEIT, EAC, BattlEye. Dangerous tweaks get blocked when a competitive anti-cheat is installed.
 - **Integrated benchmarking**: before/after FPS, 1% lows, PC Latency via Intel PresentMon 2.0
 - **Granular backup and revert**: every tweak can be undone individually. Automatic System Restore Point before batch operations.
 - **Pro/mythological labeling**: every tweak is marked as CONFIRMED / CONTROVERSIAL / MYTH with linked sources.
+- **Hover tooltips**: every tweak has a `?` icon revealing what it does, what it modifies, the risk level and the expected impact.
+
+### Secondary feature: per-game tweaks tab
+
+One dedicated tab inside the app ships per-game profiles for the three most popular competitive titles:
+
+- **Counter-Strike 2**: launch options, autoexec.cfg template, per-game NVIDIA/AMD profile, FACEIT requirements checker
+- **Valorant**: GameUserSettings.ini and Engine.ini tweaks, Vanguard compatibility matrix, VAN error code troubleshooter
+- **Apex Legends**: launch options (Steam and EA App variants), videoconfig.txt tweaks, EAC compatibility
+
+Each game tab includes one-click pro config import from top player settings (s1mple, ZywOo, donk, TenZ, aspas, ImperialHal and others).
 
 ## What it does NOT do (by design)
 
