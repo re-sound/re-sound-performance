@@ -7,9 +7,46 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="44,32,44,40">
         <StackPanel MaxWidth="1100" HorizontalAlignment="Left">
             <TextBlock Style="{StaticResource ReSound.Text.Display}" Text="Valorant" Margin="0,0,0,6" />
-            <TextBlock Style="{StaticResource ReSound.Text.Subtitle}" Text="GameUserSettings.ini and Engine.ini, Vanguard compatibility, VAN codes." Margin="0,0,0,24" />
+            <TextBlock Style="{StaticResource ReSound.Text.Subtitle}" Text="Vanguard compatibility + recommended settings. Config writes are refused per-account." Margin="0,0,0,24" />
+
+            <Border Style="{StaticResource ReSound.Card}" Margin="0,0,0,14">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource ReSound.Text.Title}" FontSize="16" Text="Detection" Margin="0,0,0,10" />
+                    <ContentControl x:Name="DetectionSlot" />
+                    <ContentControl x:Name="InstallPathSlot" />
+                </StackPanel>
+            </Border>
+
+            <Border x:Name="VanguardWarningCard" Margin="0,0,0,14" CornerRadius="12" Padding="18" BorderThickness="1"
+                    Background="#1FEF4444"
+                    BorderBrush="{StaticResource ReSound.Status.Danger}"
+                    Visibility="Collapsed">
+                <StackPanel>
+                    <TextBlock FontWeight="SemiBold" FontSize="15" Foreground="{StaticResource ReSound.Status.Danger}" Text="Vanguard detected" Margin="0,0,0,6" />
+                    <TextBlock Style="{StaticResource ReSound.Text.Body}" TextWrapping="Wrap" Text="Tweaks that would trip VAN:RESTRICTION are hard-blocked. The list below mirrors what the toggle grid will refuse to apply." Margin="0,0,0,12" />
+                    <ContentControl x:Name="BlockedSlot" />
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource ReSound.Card}" Margin="0,0,0,14">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource ReSound.Text.Title}" FontSize="16" Text="Launch options" Margin="0,0,0,10" />
+                    <TextBlock x:Name="LaunchOptionsText" Style="{StaticResource ReSound.Text.Body}" TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource ReSound.Card}" Margin="0,0,0,14">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource ReSound.Text.Title}" FontSize="16" Text="In-game graphics" Margin="0,0,0,10" />
+                    <ContentControl x:Name="SettingsSlot" />
+                </StackPanel>
+            </Border>
+
             <Border Style="{StaticResource ReSound.Card}">
-                <TextBlock Style="{StaticResource ReSound.Text.Body}" Text="Implementation pending." />
+                <StackPanel>
+                    <TextBlock Style="{StaticResource ReSound.Text.Title}" FontSize="16" Text="Notes" Margin="0,0,0,10" />
+                    <ContentControl x:Name="NotesSlot" />
+                </StackPanel>
             </Border>
         </StackPanel>
     </ScrollViewer>

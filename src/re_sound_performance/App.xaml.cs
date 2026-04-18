@@ -4,7 +4,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using re_sound_performance.Core.Appx;
 using re_sound_performance.Core.Backup;
+using re_sound_performance.Core.Detection;
+using re_sound_performance.Core.Games;
 using re_sound_performance.Core.Power;
+using re_sound_performance.Core.Presets;
 using re_sound_performance.Core.Registry;
 using re_sound_performance.Core.Services;
 using re_sound_performance.Core.Tasks;
@@ -40,6 +43,40 @@ public partial class App : Application
 
         var engine = _services.GetRequiredService<TweakEngine>();
         _ = engine.ProbeAllAsync();
+
+        _ = RunDetectionAsync();
+    }
+
+    private async Task RunDetectionAsync()
+    {
+        if (_services is null)
+        {
+            return;
+        }
+
+        var context = _services.GetRequiredService<DetectionContext>();
+        var hardware = _services.GetRequiredService<IHardwareDetector>();
+        var antiCheat = _services.GetRequiredService<IAntiCheatDetector>();
+
+        try
+        {
+            var hw = await hardware.DetectAsync().ConfigureAwait(false);
+            context.SetHardware(hw);
+        }
+        catch
+        {
+            context.SetHardware(HardwareInfo.Unknown);
+        }
+
+        try
+        {
+            var ac = await antiCheat.DetectAsync().ConfigureAwait(false);
+            context.SetAntiCheat(ac);
+        }
+        catch
+        {
+            context.SetAntiCheat(AntiCheatInfo.None);
+        }
     }
 
     protected override void OnExit(ExitEventArgs e)
@@ -73,6 +110,15 @@ public partial class App : Application
         services.AddSingleton<RestorePointManager>();
 
         services.AddSingleton<TweakStateCache>();
+
+        services.AddSingleton<IFileSystemProbe, FileSystemProbe>();
+        services.AddSingleton<IHardwareDetector, WmiHardwareDetector>();
+        services.AddSingleton<IAntiCheatDetector, WindowsAntiCheatDetector>();
+        services.AddSingleton<DetectionContext>();
+        services.AddSingleton<PresetRunner>();
+
+        services.AddSingleton<IGameDetector, WindowsGameDetector>();
+        services.AddSingleton<IGameConfigWriter, FileSystemGameConfigWriter>();
 
         services.AddSingleton<ITweak, DisableXboxGameBarTweak>();
         services.AddSingleton<ITweak, DisableGameDvrTweak>();

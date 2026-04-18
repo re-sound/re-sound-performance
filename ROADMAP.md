@@ -6,8 +6,11 @@ This document tracks the state of the project and the ordered list of pending wo
 
 - Repository: https://github.com/re-sound/re-sound-performance (Apache 2.0)
 - .NET 8 WPF solution, three projects: main app, `Core` engine, xunit tests
-- **33 tweaks** registered across System, Privacy, Debloat, GPU, Input, Network, Power categories
-- **30 xunit tests** passing (Linux + Windows CI)
+- **34 tweaks** registered across System, Privacy, Debloat, GPU, Input, Network, Power categories
+- **Hardware + anti-cheat detection** wired into the HomePage and the toggle gate
+- **Preset selector** (Safe / Balanced / Competitive) with preview dialog, progress bar and cancellation
+- **Per-game tabs** (CS2, Valorant, Apex) with installation detection, recommended launch options, in-game settings reference and (for CS2) an on-disk autoexec writer with backup
+- **61 xunit tests** passing (Linux + Windows CI)
 - CI workflow builds, runs tests, runs `dotnet format`
 - Release workflow publishes portable + framework-dependent ZIPs on every `v*` tag
 - Complete research knowledge base in `docs/research/` (13 documents, ~65000 words)
@@ -19,6 +22,7 @@ Tag | Date | Notes
 `v0.0.1-test` | 2026-04-?? | First public build, 23 tweaks, post-apply probe
 `v0.0.2-test` | 2026-04-18 | Post-apply verifier pill, UI polish, +10 tweaks (schtasks + Appx), Privacy/Debloat/GPU pages wired
 `v0.0.3-test` | 2026-04-18 | Single-instance guard, TweakStateCache (no more 1-by-1 reload), UsoSvc tweak, UI redesign (Synapse-style violet `#7C3AED`)
+`v0.0.4-test` | 2026-04-18 | Hardware + anti-cheat detection, preset selector (Safe/Balanced/Competitive), per-game tabs (CS2 autoexec writer, Valorant Vanguard compat, Apex launcher-aware)
 
 ### Abstractions in place
 
@@ -31,8 +35,15 @@ Scheduled tasks | `IScheduledTaskManager` (with `TrySetState`/`SetStateOutcome`)
 UWP (Appx) | `IAppxManager` | — | `powershell.exe` (Get/Remove-AppxPackage, Remove-AppxProvisionedPackage)
 Backup | `IBackupStore` + `FileSystemBackupStore` | | Per-tweak JSON under LocalAppData
 System Restore | `RestorePointManager` | | WMI SystemRestore
-**Tweak state cache (new in v0.0.3)** | `TweakStateCache` | | `ConcurrentDictionary` + `StateChanged`/`ProbingProgress` events
-**Single-instance guard (new in v0.0.3)** | `SingleInstanceGuard` | | `Local\` Mutex + `FindWindow`/`SetForegroundWindow`
+Tweak state cache | `TweakStateCache` | | `ConcurrentDictionary` + `StateChanged`/`ProbingProgress` events
+Single-instance guard | `SingleInstanceGuard` | | `Local\` Mutex + `FindWindow`/`SetForegroundWindow`
+**Hardware detection (new in v0.0.4)** | `IHardwareDetector` | `WmiHardwareDetector` | `System.Management` WMI
+**Anti-cheat detection (new in v0.0.4)** | `IAntiCheatDetector` | `WindowsAntiCheatDetector` | `IServiceManager` + `IFileSystemProbe`
+**Detection context (new in v0.0.4)** | `DetectionContext` | | singleton + `Changed` event
+**Tweak gate (new in v0.0.4)** | `TweakGate.Evaluate` | | pure function over metadata + `AntiCheatInfo`
+**Presets (new in v0.0.4)** | `PresetCatalog` + `PresetRunner` | | 3 curated lists + progress-driven apply loop
+**Game detection (new in v0.0.4)** | `IGameDetector` | `WindowsGameDetector` | Registry + `IFileSystemProbe` (Steam / Riot / EA App / Origin)
+**Game config writer (new in v0.0.4)** | `IGameConfigWriter` | `FileSystemGameConfigWriter` | Filesystem with `.resound.bak` backup
 
 ### Non-obvious decisions worth remembering
 
@@ -43,12 +54,18 @@ System Restore | `RestorePointManager` | | WMI SystemRestore
 - **Mutex uses `Local\` namespace, not `Global\`.** Single-instance is per user/session, which is what we want; `Global\` would need explicit SID access rights even for an elevated app.
 - **Failed pill for probe-mismatch is intentional.** If `ApplyAsync` returns Success but the post-apply probe says `NotApplied`, we mark as `Failed` with "Post-apply verification mismatch: changes did not take effect." — catches GPO / anti-cheat overrides.
 - **UI design tokens live in `Themes/Colors.xaml` and `Themes/Styles.xaml`.** No more hardcoded RGB inside controls. Category colors, risk colors, card surfaces and typography are `StaticResource` keys.
+- **Windows paths in detection are joined with explicit `\`** (not `Path.Combine`). Otherwise Linux CI tests end up with `C:\Foo/bar` which no `InMemoryFileSystemProbe` will match. See `WindowsGameDetector.JoinWindows`.
+- **`DetectionContext` is populated once at startup** via fire-and-forget in `App.OnStartup`. UI surfaces show `Detecting...` until the `Changed` event fires.
+- **`TweakGate` is pure.** Every UI path (card toggle, preset step, Valorant page warning list) flows through `TweakGate.Evaluate` so the enforcement story stays consistent.
+- **Presets always skip already-applied tweaks** rather than re-applying. Probe state is the source of truth.
+- **Apex EA App launcher ignores `+` launch options from shortcuts.** Surfaced as an install-time note on the Apex page; users must set them in EA App > Game settings > Advanced launch options.
+- **Valorant config writes are deliberately refused.** The INI lives under `%LOCALAPPDATA%\VALORANT\Saved\Config\<hash>\Windows\` and is tied to the signed-in Riot account; re_sound Performance only displays recommended settings and the blocked-tweak list.
 
-### Tweak catalog (33 tweaks)
+### Tweak catalog (34 tweaks)
 
 Category | Count | Representative tweaks
 ---------|-------|----------------------
-System | 10 | Xbox Game Bar, Game DVR + FSE, MPO, MMCSS SystemResponsiveness, Edge Startup Boost, Maps Broker, Fax/RetailDemo, Xbox services (Medium), WER + SysMain (Medium), **UsoSvc (new)**
+System | 10 | Xbox Game Bar, Game DVR + FSE, MPO, MMCSS SystemResponsiveness, Edge Startup Boost, Maps Broker, Fax/RetailDemo, Xbox services (Medium), WER + SysMain (Medium), UsoSvc
 Input | 2 | Enhance Pointer Precision, Sticky/Filter/Toggle Keys
 Privacy | 10 | Telemetry, Activity History, Advertising ID, Copilot + Recall, Tips, Bing/Web Search, Location Tracking, DiagTrack services, Telemetry schtasks, Update Orchestrator schtasks (Unavailable w/o TrustedInstaller)
 Network | 1 | NDU non-paged pool fix
@@ -56,50 +73,28 @@ Power | 2 | Ultimate Performance plan, Hibernation + Fast Startup
 GPU | 1 | DirectX Shader Cache 10 GB
 Debloat | 8 | Teams consumer, Clipchamp, Bing apps, Xbox consumer, Copilot, Recall/AI, Stock annoyances, Legacy media (Groove/Movies/Solitaire/OneNote)
 
+### Presets
+
+Preset | Tweaks | Intended user
+-------|--------|--------------
+Safe | 12 | Any Windows 11 box. Zero services disabled, zero debloat, nothing anti-cheats will flag.
+Balanced | 29 | Daily driver that games. Service hardening + Appx debloat on top of Safe.
+Competitive | 31 | Dedicated gaming rig on SSD/NVMe with 16+ GB RAM. Adds hibernation off and legacy media removal.
+
 ---
 
 ## Next sprint — pick one when resuming
 
-### 1. Hardware + anti-cheat detection *(unblocks presets and per-game tabs)*
-
-Files to create:
-
-- `Core/Detection/HardwareInfo.cs` — record: CPU vendor, hybrid flag, GPU vendor/model, OS build, RAM GB, primary storage kind (HDD/SSD/NVMe)
-- `Core/Detection/IHardwareDetector.cs`, `WmiHardwareDetector.cs` — uses `System.Management` WMI (`Win32_Processor`, `Win32_VideoController`, `Win32_PhysicalMemory`, `Win32_DiskDrive`)
-- `Core/Detection/AntiCheatStatus.cs` — enum `None | Vanguard | FaceitAc | Eac | BattleEye | Multiple`
-- `Core/Detection/IAntiCheatDetector.cs`, `WindowsAntiCheatDetector.cs` — checks for services `vgc`/`vgk`, folder `C:\Program Files\Riot Vanguard`, EasyAntiCheat under common game install paths, BattlEye services
-- Tests with mocked registry/file/service dependencies
-
-Wire into DI, surface on `HomePage` above the stat row, and enforce `Metadata.BlockedWhenVanguardInstalled` / `BlockedWhenFaceitInstalled` in the toggle handler (right now the flags exist but nothing reads them).
-
-### 2. Preset selector on HomePage
-
-Files to create:
-
-- `Core/Presets/Preset.cs`, `PresetCatalog.cs` (Safe / Balanced / Competitive), `PresetRunner.cs`
-- HomePage: three preset cards under the hero with preview dialog + progress bar + cancellation
-
-Draft preset content is in the previous roadmap entry; reuse.
-
-### 3. Per-game tabs (CS2, Valorant, Apex)
-
-Research ready in `docs/research/06-cs2-optimization.md`, `07-valorant-optimization.md`, `08-apex-optimization.md`. Key files:
-
-- `Core/Games/{Cs2,Valorant,Apex}/...` autoexec / GameUserSettings / videoconfig editors and pro config import
-- `Core/Games/IGameDetector.cs` (Steam path for cs2.exe, Riot path for VALORANT-Win64-Shipping.exe, Origin/EA for r5apex.exe)
-- Valorant page must show Vanguard compatibility matrix and refuse VBS/HVCI toggles when Valorant is installed (prevents `VAN:RESTRICTION`).
-- Apex page must detect launcher (Steam vs EA App) and warn EA App users that `+` launch options are ignored.
-
-### 4. Benchmarking integration (Intel PresentMon 2.0)
+### 1. Benchmarking integration (Intel PresentMon 2.0)
 
 Research: `docs/research/11-benchmarking-integracion.md`. Files:
 
 - `Core/Benchmark/IPresentMonRunner.cs`, `PresentMonCli.cs` (CSV v2 schema)
 - `FrameStats.cs`, `FrameStatsCalculator.cs` (avg + integral 1% low conventions)
 - `BenchmarkComparer.cs` — weighted verdict: 30% avg + 50% 1% low + 20% latency
-- `BenchmarkPage.xaml` with ScottPlot live graph and wizard (baseline → apply → post)
+- `BenchmarkPage.xaml` already scaffolded; wire ScottPlot live graph and wizard (baseline → apply → post)
 
-### 5. Auto-update + signed builds (towards v1.0)
+### 2. Auto-update + signed builds (towards v1.0)
 
 Research: `docs/research/13-ecosistema-produccion.md`.
 
@@ -109,16 +104,23 @@ Research: `docs/research/13-ecosistema-produccion.md`.
 - Submit to winget community repo
 - Document three distribution channels on README
 
-### 6. Future enhancements (lower priority)
+### 3. OneDrive debloat
 
+Needs a Win32 uninstaller abstraction (`%SystemRoot%\SysWOW64\OneDriveSetup.exe /uninstall`). Research notes already in `docs/research/03-registry-servicios-telemetria-uwp.md`.
+
+### 4. Future enhancements (lower priority)
+
+- Hardware-aware preset recommendations (e.g. skip `EnableUltimatePerformancePlan` on laptops, warn on < 16 GB RAM for Competitive)
+- Live reloading of presets from a community-maintained GitHub JSON (behind opt-in flag)
 - PresentMon telemetry opt-in (anonymous hardware + tweak deltas)
-- Community profiles (GitHub-backed JSON pro configs, refreshed via CI)
 - i18n: English + Spanish resource files
 - Accessibility: screen reader labels on TweakCard
 - Theme switching (Light/Dark/System) in Settings
 - Configurable `?` tooltip delay
 - Export applied tweaks as shareable JSON (redacted hardware IDs)
 - Crash reporter (Sentry self-host or free tier)
+- Valorant config writer (needs account-hash discovery under `%LOCALAPPDATA%\VALORANT\Saved\Config`)
+- Apex videoconfig writer (needs read-only attribute toggling because Respawn rewrites the file on exit)
 
 ---
 

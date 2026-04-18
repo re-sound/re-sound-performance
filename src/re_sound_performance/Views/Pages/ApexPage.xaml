@@ -7,9 +7,38 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="44,32,44,40">
         <StackPanel MaxWidth="1100" HorizontalAlignment="Left">
             <TextBlock Style="{StaticResource ReSound.Text.Display}" Text="Apex Legends" Margin="0,0,0,6" />
-            <TextBlock Style="{StaticResource ReSound.Text.Subtitle}" Text="Launch options, videoconfig, autoexec, EAC compatibility." Margin="0,0,0,24" />
+            <TextBlock Style="{StaticResource ReSound.Text.Subtitle}" Text="Launcher-aware launch options, videoconfig suggestions, EAC compatibility." Margin="0,0,0,24" />
+
+            <Border Style="{StaticResource ReSound.Card}" Margin="0,0,0,14">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource ReSound.Text.Title}" FontSize="16" Text="Detection" Margin="0,0,0,10" />
+                    <ContentControl x:Name="DetectionSlot" />
+                    <ContentControl x:Name="InstallPathSlot" />
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource ReSound.Card}" Margin="0,0,0,14">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource ReSound.Text.Title}" FontSize="16" Text="Launch options" Margin="0,0,0,10" />
+                    <Border Background="{StaticResource ReSound.Surface.Hover}" CornerRadius="6" Padding="10">
+                        <TextBox x:Name="LaunchOptionsBox" Background="Transparent" BorderThickness="0" IsReadOnly="True" FontFamily="Consolas" Foreground="{StaticResource ReSound.Accent.Light}" />
+                    </Border>
+                    <Button x:Name="CopyLaunchButton" Content="Copy to clipboard" HorizontalAlignment="Left" Margin="0,10,0,0" Click="CopyLaunch_Click" />
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource ReSound.Card}" Margin="0,0,0,14">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource ReSound.Text.Title}" FontSize="16" Text="videoconfig.txt tweaks" Margin="0,0,0,10" />
+                    <ContentControl x:Name="SettingsSlot" />
+                </StackPanel>
+            </Border>
+
             <Border Style="{StaticResource ReSound.Card}">
-                <TextBlock Style="{StaticResource ReSound.Text.Body}" Text="Implementation pending." />
+                <StackPanel>
+                    <TextBlock Style="{StaticResource ReSound.Text.Title}" FontSize="16" Text="Notes" Margin="0,0,0,10" />
+                    <ContentControl x:Name="NotesSlot" />
+                </StackPanel>
             </Border>
         </StackPanel>
     </ScrollViewer>

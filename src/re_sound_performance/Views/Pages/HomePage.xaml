@@ -59,6 +59,130 @@
                 </Grid>
             </Border>
 
+            <!-- Detection row -->
+            <Grid x:Name="DetectionRow" Margin="0,0,0,18">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="14" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" Style="{StaticResource ReSound.Card}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource ReSound.Text.StatLabel}" Text="HARDWARE" />
+                        <TextBlock x:Name="HwPrimary" Style="{StaticResource ReSound.Text.Title}" FontSize="15" Margin="0,6,0,2" Text="Detecting..." />
+                        <TextBlock x:Name="HwSecondary" Style="{StaticResource ReSound.Text.Body}" Text="" />
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="2" Style="{StaticResource ReSound.Card}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource ReSound.Text.StatLabel}" Text="ANTI-CHEAT" />
+                        <TextBlock x:Name="AcPrimary" Style="{StaticResource ReSound.Text.Title}" FontSize="15" Margin="0,6,0,2" Text="Scanning..." />
+                        <ItemsControl x:Name="AcDetails">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- Preset selector -->
+            <Border Style="{StaticResource ReSound.Card}" Margin="0,0,0,18">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                        <TextBlock Style="{StaticResource ReSound.Text.Title}" FontSize="16" Text="Presets" />
+                        <TextBlock Style="{StaticResource ReSound.Text.Body}" Margin="10,2,0,0" Text="Bundles of recommended tweaks, applied in order with anti-cheat awareness." />
+                    </StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="14" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="14" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Border x:Name="PresetCardSafe"
+                                Grid.Column="0"
+                                Style="{StaticResource ReSound.Card}"
+                                Cursor="Hand"
+                                Tag="Safe"
+                                MouseLeftButtonUp="PresetCard_Click">
+                            <StackPanel>
+                                <TextBlock Text="SAFE" FontWeight="Bold" FontSize="12" Foreground="{StaticResource ReSound.Risk.Safe}" Margin="0,0,0,8" />
+                                <TextBlock x:Name="PresetSafeName" Text="Safe" FontSize="18" FontWeight="SemiBold" Foreground="{StaticResource ReSound.Text.Primary}" />
+                                <TextBlock x:Name="PresetSafeTagline" Style="{StaticResource ReSound.Text.Body}" Margin="0,2,0,10" />
+                                <TextBlock x:Name="PresetSafeCount" FontSize="11" Foreground="{StaticResource ReSound.Text.Muted}" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border x:Name="PresetCardBalanced"
+                                Grid.Column="2"
+                                Style="{StaticResource ReSound.Card}"
+                                Cursor="Hand"
+                                Tag="Balanced"
+                                MouseLeftButtonUp="PresetCard_Click">
+                            <StackPanel>
+                                <TextBlock Text="BALANCED" FontWeight="Bold" FontSize="12" Foreground="{StaticResource ReSound.Risk.Medium}" Margin="0,0,0,8" />
+                                <TextBlock x:Name="PresetBalancedName" Text="Balanced" FontSize="18" FontWeight="SemiBold" Foreground="{StaticResource ReSound.Text.Primary}" />
+                                <TextBlock x:Name="PresetBalancedTagline" Style="{StaticResource ReSound.Text.Body}" Margin="0,2,0,10" />
+                                <TextBlock x:Name="PresetBalancedCount" FontSize="11" Foreground="{StaticResource ReSound.Text.Muted}" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border x:Name="PresetCardCompetitive"
+                                Grid.Column="4"
+                                Style="{StaticResource ReSound.Card}"
+                                Cursor="Hand"
+                                Tag="Competitive"
+                                MouseLeftButtonUp="PresetCard_Click">
+                            <StackPanel>
+                                <TextBlock Text="COMPETITIVE" FontWeight="Bold" FontSize="12" Foreground="{StaticResource ReSound.Risk.High}" Margin="0,0,0,8" />
+                                <TextBlock x:Name="PresetCompetitiveName" Text="Competitive" FontSize="18" FontWeight="SemiBold" Foreground="{StaticResource ReSound.Text.Primary}" />
+                                <TextBlock x:Name="PresetCompetitiveTagline" Style="{StaticResource ReSound.Text.Body}" Margin="0,2,0,10" />
+                                <TextBlock x:Name="PresetCompetitiveCount" FontSize="11" Foreground="{StaticResource ReSound.Text.Muted}" />
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Preset run status -->
+            <Grid x:Name="PresetRunRow" Margin="0,0,0,18" Visibility="Collapsed">
+                <Border Style="{StaticResource ReSound.Card}">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock x:Name="PresetRunText" Grid.Column="0" Style="{StaticResource ReSound.Text.Title}" FontSize="15" Text="Applying preset..." />
+                            <Button x:Name="PresetCancelButton" Grid.Column="1" Content="Cancel" Click="PresetCancelButton_Click" />
+                        </Grid>
+                        <Grid Height="4" Margin="0,0,0,10">
+                            <Border CornerRadius="2" Background="{StaticResource ReSound.Surface.Hover}" />
+                            <Border x:Name="PresetRunBar" Width="4"
+                                    HorizontalAlignment="Left"
+                                    CornerRadius="2"
+                                    Background="{StaticResource ReSound.Accent.Gradient}" />
+                        </Grid>
+                        <ItemsControl x:Name="PresetRunSteps" MaxHeight="220">
+                            <ItemsControl.Template>
+                                <ControlTemplate TargetType="ItemsControl">
+                                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                        <ItemsPresenter />
+                                    </ScrollViewer>
+                                </ControlTemplate>
+                            </ItemsControl.Template>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
             <!-- Probing progress -->
             <Grid x:Name="ProbingRow" Margin="0,0,0,18" Visibility="Collapsed">
                 <Border CornerRadius="10"
@@ -151,13 +275,6 @@
                 </StackPanel>
             </Border>
 
-            <Border Style="{StaticResource ReSound.Card}">
-                <ui:SimpleStackPanel Spacing="6">
-                    <TextBlock Style="{StaticResource ReSound.Text.Title}" FontSize="16" Text="Next on the roadmap" />
-                    <TextBlock Style="{StaticResource ReSound.Text.Body}" TextWrapping="Wrap"
-                               Text="Hardware detection with anti-cheat awareness, preset selector (Safe / Balanced / Competitive) and per-game tabs will land in upcoming iterations." />
-                </ui:SimpleStackPanel>
-            </Border>
         </StackPanel>
     </ScrollViewer>
 </Page>

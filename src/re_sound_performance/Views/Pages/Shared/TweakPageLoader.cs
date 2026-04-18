@@ -1,7 +1,9 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using Microsoft.Extensions.DependencyInjection;
 using re_sound_performance.Controls;
+using re_sound_performance.Core.Detection;
 using re_sound_performance.Core.Tweaks;
 
 namespace re_sound_performance.Views.Pages.Shared;
@@ -10,6 +12,7 @@ internal static class TweakPageLoader
 {
     public static Task PopulateAsync(TweakEngine engine, ItemsControl host, IReadOnlyCollection<TweakCategory> allowedCategories)
     {
+        var detection = ResolveDetection();
         host.Items.Clear();
 
         var grouped = engine.AvailableTweaks
@@ -40,7 +43,7 @@ internal static class TweakPageLoader
             {
                 var card = new TweakCard { Metadata = tweak.Metadata };
                 var capturedTweak = tweak;
-                card.ToggleRequested += async (_, _) => await OnToggleAsync(engine, card, capturedTweak).ConfigureAwait(true);
+                card.ToggleRequested += async (_, _) => await OnToggleAsync(engine, card, capturedTweak, detection).ConfigureAwait(true);
                 host.Items.Add(card);
                 cardsById[tweak.Metadata.Id] = card;
 
@@ -52,6 +55,8 @@ internal static class TweakPageLoader
                 {
                     card.Status = TweakCardStatus.Idle;
                 }
+
+                ApplyGate(card, tweak.Metadata, detection);
             }
         }
 
@@ -74,9 +79,68 @@ internal static class TweakPageLoader
         };
 
         cache.StateChanged += handler;
-        host.Unloaded += (_, _) => cache.StateChanged -= handler;
+
+        EventHandler? detectionHandler = null;
+        if (detection is not null)
+        {
+            detectionHandler = (_, _) =>
+            {
+                host.Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    foreach (var kv in cardsById)
+                    {
+                        var tweak = engine.Resolve(kv.Key);
+                        if (tweak is null)
+                        {
+                            continue;
+                        }
+
+                        ApplyGate(kv.Value, tweak.Metadata, detection);
+                    }
+                }));
+            };
+            detection.Changed += detectionHandler;
+        }
+
+        host.Unloaded += (_, _) =>
+        {
+            cache.StateChanged -= handler;
+            if (detection is not null && detectionHandler is not null)
+            {
+                detection.Changed -= detectionHandler;
+            }
+        };
 
         return Task.CompletedTask;
+    }
+
+    private static DetectionContext? ResolveDetection()
+    {
+        if (Application.Current is App app)
+        {
+            return app.Services.GetService<DetectionContext>();
+        }
+
+        return null;
+    }
+
+    private static void ApplyGate(TweakCard card, TweakMetadata metadata, DetectionContext? detection)
+    {
+        var decision = TweakGate.Evaluate(metadata, detection?.AntiCheat);
+        if (decision.Allowed)
+        {
+            card.SetToggleEnabled(true);
+            if (card.Status == TweakCardStatus.Unavailable && string.Equals(card.StatusMessage, decision.Reason, StringComparison.Ordinal))
+            {
+                card.Status = TweakCardStatus.Idle;
+                card.StatusMessage = null;
+            }
+            return;
+        }
+
+        card.SetToggleEnabled(false);
+        card.Status = TweakCardStatus.Unavailable;
+        card.StatusMessage = decision.Reason;
     }
 
     private static void ApplyCachedStatus(TweakCard card, TweakStatus status)
@@ -85,9 +149,22 @@ internal static class TweakPageLoader
         card.Status = MapInitialStatus(status);
     }
 
-    private static async Task OnToggleAsync(TweakEngine engine, TweakCard card, ITweak tweak)
+    private static async Task OnToggleAsync(TweakEngine engine, TweakCard card, ITweak tweak, DetectionContext? detection)
     {
         var willApply = !card.IsApplied;
+
+        if (willApply)
+        {
+            var gate = TweakGate.Evaluate(tweak.Metadata, detection?.AntiCheat);
+            if (!gate.Allowed)
+            {
+                card.SetAppliedSilently(false);
+                card.Status = TweakCardStatus.Unavailable;
+                card.StatusMessage = gate.Reason;
+                card.SetToggleEnabled(false);
+                return;
+            }
+        }
 
         card.SetToggleEnabled(false);
         card.Status = willApply ? TweakCardStatus.Applying : TweakCardStatus.Reverting;

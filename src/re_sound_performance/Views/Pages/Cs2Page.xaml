@@ -7,9 +7,51 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="44,32,44,40">
         <StackPanel MaxWidth="1100" HorizontalAlignment="Left">
             <TextBlock Style="{StaticResource ReSound.Text.Display}" Text="Counter-Strike 2" Margin="0,0,0,6" />
-            <TextBlock Style="{StaticResource ReSound.Text.Subtitle}" Text="Launch options, autoexec, video settings, FACEIT requirements." Margin="0,0,0,24" />
+            <TextBlock Style="{StaticResource ReSound.Text.Subtitle}" Text="Launch options, autoexec, FACEIT-ready settings." Margin="0,0,0,24" />
+
+            <Border Style="{StaticResource ReSound.Card}" Margin="0,0,0,14">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource ReSound.Text.Title}" FontSize="16" Text="Detection" Margin="0,0,0,10" />
+                    <ContentControl x:Name="DetectionSlot" />
+                    <ContentControl x:Name="InstallPathSlot" />
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource ReSound.Card}" Margin="0,0,0,14">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource ReSound.Text.Title}" FontSize="16" Text="Steam launch options" Margin="0,0,0,10" />
+                    <Border Background="{StaticResource ReSound.Surface.Hover}" CornerRadius="6" Padding="10">
+                        <TextBox x:Name="LaunchOptionsBox" Background="Transparent" BorderThickness="0" IsReadOnly="True" FontFamily="Consolas" Foreground="{StaticResource ReSound.Accent.Light}" />
+                    </Border>
+                    <Button x:Name="CopyLaunchButton" Content="Copy to clipboard" HorizontalAlignment="Left" Margin="0,10,0,0" Click="CopyLaunch_Click" />
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource ReSound.Card}" Margin="0,0,0,14">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource ReSound.Text.Title}" FontSize="16" Text="Recommended autoexec.cfg" Margin="0,0,0,10" />
+                    <Border Background="{StaticResource ReSound.Surface.Hover}" CornerRadius="6" Padding="10">
+                        <TextBox x:Name="AutoexecBox" IsReadOnly="True" Background="Transparent" BorderThickness="0" FontFamily="Consolas" Foreground="{StaticResource ReSound.Text.Primary}" TextWrapping="Wrap" AcceptsReturn="True" MaxHeight="220" VerticalScrollBarVisibility="Auto" />
+                    </Border>
+                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                        <Button x:Name="WriteAutoexecButton" Content="Write autoexec.cfg" Click="WriteAutoexec_Click" Margin="0,0,8,0" />
+                        <TextBlock x:Name="WriteResultText" VerticalAlignment="Center" Style="{StaticResource ReSound.Text.Body}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource ReSound.Card}" Margin="0,0,0,14">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource ReSound.Text.Title}" FontSize="16" Text="Key settings" Margin="0,0,0,10" />
+                    <ContentControl x:Name="SettingsSlot" />
+                </StackPanel>
+            </Border>
+
             <Border Style="{StaticResource ReSound.Card}">
-                <TextBlock Style="{StaticResource ReSound.Text.Body}" Text="Implementation pending." />
+                <StackPanel>
+                    <TextBlock Style="{StaticResource ReSound.Text.Title}" FontSize="16" Text="Notes" Margin="0,0,0,10" />
+                    <ContentControl x:Name="NotesSlot" />
+                </StackPanel>
             </Border>
         </StackPanel>
     </ScrollViewer>
