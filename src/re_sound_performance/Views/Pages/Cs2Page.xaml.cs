@@ -1,5 +1,4 @@
 using System.Windows;
-using System.Windows.Controls;
 using re_sound_performance.Core.Games;
 using re_sound_performance.Views.Pages.Shared;
 

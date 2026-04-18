@@ -1,7 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Extensions.DependencyInjection;
-using re_sound_performance.Controls;
 using re_sound_performance.Core.Tweaks;
 using re_sound_performance.Views.Pages.Shared;
 
