@@ -1,0 +1,126 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore src/
+
+      - name: Build
+        run: dotnet build src/ --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test src/ --configuration Release --no-build --verbosity normal
+
+      - name: Publish portable self-contained
+        shell: pwsh
+        run: |
+          dotnet publish src/re_sound_performance/re_sound_performance.csproj `
+            --configuration Release `
+            --runtime win-x64 `
+            --self-contained true `
+            -p:PublishSingleFile=true `
+            -p:IncludeNativeLibrariesForSelfExtract=true `
+            -p:EnableCompressionInSingleFile=true `
+            -p:DebugType=None `
+            -p:DebugSymbols=false `
+            --output publish/portable
+
+      - name: Publish framework-dependent
+        shell: pwsh
+        run: |
+          dotnet publish src/re_sound_performance/re_sound_performance.csproj `
+            --configuration Release `
+            --runtime win-x64 `
+            --self-contained false `
+            -p:DebugType=None `
+            -p:DebugSymbols=false `
+            --output publish/fx-dependent
+
+      - name: Stage portable bundle
+        shell: pwsh
+        run: |
+          Copy-Item LICENSE publish/portable/
+          Copy-Item README.md publish/portable/
+          Copy-Item ROADMAP.md publish/portable/
+
+      - name: Stage framework-dependent bundle
+        shell: pwsh
+        run: |
+          Copy-Item LICENSE publish/fx-dependent/
+          Copy-Item README.md publish/fx-dependent/
+          Copy-Item ROADMAP.md publish/fx-dependent/
+
+      - name: Zip portable (self-contained)
+        shell: pwsh
+        run: |
+          $zipName = "re_sound_performance-${{ github.ref_name }}-win-x64-portable.zip"
+          Compress-Archive -Path publish/portable/* -DestinationPath $zipName
+          Write-Output "PORTABLE_ZIP=$zipName" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Zip framework-dependent
+        shell: pwsh
+        run: |
+          $zipName = "re_sound_performance-${{ github.ref_name }}-win-x64-fxdependent.zip"
+          Compress-Archive -Path publish/fx-dependent/* -DestinationPath $zipName
+          Write-Output "FXDEP_ZIP=$zipName" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Compute SHA256 checksums
+        shell: pwsh
+        run: |
+          $portableHash = (Get-FileHash ${{ env.PORTABLE_ZIP }} -Algorithm SHA256).Hash
+          $fxHash = (Get-FileHash ${{ env.FXDEP_ZIP }} -Algorithm SHA256).Hash
+          $content = @"
+          SHA256 checksums
+          ================
+
+          ${{ env.PORTABLE_ZIP }}
+          $portableHash
+
+          ${{ env.FXDEP_ZIP }}
+          $fxHash
+          "@
+          $content | Out-File -FilePath SHA256SUMS.txt -Encoding utf8
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ${{ env.PORTABLE_ZIP }}
+            ${{ env.FXDEP_ZIP }}
+            SHA256SUMS.txt
+          generate_release_notes: true
+          prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
+          body: |
+            ## Downloads
+
+            **Portable (self-contained, recommended)** — no .NET runtime required, extract and run as administrator.
+            `${{ env.PORTABLE_ZIP }}`
+
+            **Framework-dependent** — smaller download, requires .NET 8 Desktop Runtime pre-installed.
+            `${{ env.FXDEP_ZIP }}`
+
+            Verify your download against `SHA256SUMS.txt`.
+
+            This build is **not code-signed** yet. Windows SmartScreen may warn; choose "More info" then "Run anyway" to launch. Code signing will ship with v1.0 via SignPath Foundation.
+
+            Administrator rights are required to apply system tweaks.
+
+            See `ROADMAP.md` for current state and pending work.

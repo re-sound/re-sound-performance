@@ -54,37 +54,53 @@ Known compatible hardware:
 
 ## Installation
 
-### Option 1: Installer (recommended for most users)
+### Download the portable build (recommended)
 
-1. Download the latest signed installer from the [Releases page](https://github.com/re-sound/re-sound-performance/releases)
-2. Run `re_sound_performance_setup.exe`
-3. Accept UAC prompt
-4. Follow the wizard
-5. Launch from Start Menu
+1. Go to the [Releases page](https://github.com/re-sound/re-sound-performance/releases)
+2. Click on the most recent release
+3. Under **Assets**, download `re_sound_performance-<version>-win-x64-portable.zip`
+4. Right-click the zip and extract it to any folder
+5. Right-click `re_sound_performance.exe` and select **Run as administrator**
 
-### Option 2: Portable
+The portable build is self-contained. No .NET runtime install required.
 
-1. Download `re_sound_performance_portable.zip` from Releases
-2. Extract to any folder
-3. Right-click `re_sound_performance.exe` and select "Run as administrator"
+### Alternative: framework-dependent build (smaller download)
 
-### Option 3: PowerShell one-liner
-
-Open PowerShell as administrator and run:
+Requires .NET 8 Desktop Runtime installed first:
 
 ```powershell
-irm https://raw.githubusercontent.com/re-sound/re-sound-performance/main/install.ps1 | iex
+winget install Microsoft.DotNet.DesktopRuntime.8
 ```
 
-This downloads, verifies and installs the latest signed build.
+Then download `re_sound_performance-<version>-win-x64-fxdependent.zip` from Releases, extract and run.
 
-### Option 4: winget
+### Alternative: build from source (developers)
 
 ```powershell
-winget install re-sound.Performance
+git clone https://github.com/re-sound/re-sound-performance.git
+cd re-sound-performance/src
+dotnet restore
+dotnet build --configuration Release
+dotnet run --project re_sound_performance --configuration Release
 ```
 
-(Available after v1.0 release)
+See [docs/TESTING.md](docs/TESTING.md) for the full development setup.
+
+### Coming with v1.0
+
+- PowerShell one-liner installer (`irm | iex` pattern)
+- winget package (`winget install re-sound.Performance`)
+- Signed releases via SignPath Foundation certificate (removes SmartScreen warnings)
+
+### Verifying downloads
+
+Every release ships with `SHA256SUMS.txt`. Verify a download in PowerShell:
+
+```powershell
+(Get-FileHash .\re_sound_performance-<version>-win-x64-portable.zip -Algorithm SHA256).Hash
+```
+
+Compare the output to the corresponding line in `SHA256SUMS.txt`.
 
 ## First run
 
