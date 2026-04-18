@@ -8,18 +8,28 @@
              d:DesignHeight="120" d:DesignWidth="900">
 
     <Border x:Name="OuterBorder"
-            Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+            CornerRadius="12"
+            Background="{StaticResource ReSound.Surface.Card}"
             BorderThickness="1"
-            BorderBrush="Transparent"
-            CornerRadius="10"
-            Margin="0,0,0,10"
+            BorderBrush="{StaticResource ReSound.Surface.Divider}"
+            Margin="0,0,0,12"
             SnapsToDevicePixels="True">
         <Border.Style>
             <Style TargetType="Border">
+                <Setter Property="Effect">
+                    <Setter.Value>
+                        <DropShadowEffect Color="#00000000" BlurRadius="0" ShadowDepth="0" />
+                    </Setter.Value>
+                </Setter>
                 <Style.Triggers>
                     <Trigger Property="IsMouseOver" Value="True">
-                        <Setter Property="BorderBrush" Value="{DynamicResource SystemControlHighlightAccentBrush}" />
-                        <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundChromeMediumBrush}" />
+                        <Setter Property="Background" Value="{StaticResource ReSound.Surface.CardHover}" />
+                        <Setter Property="BorderBrush" Value="{StaticResource ReSound.Accent.Primary}" />
+                        <Setter Property="Effect">
+                            <Setter.Value>
+                                <DropShadowEffect Color="#7C3AED" BlurRadius="18" ShadowDepth="0" Opacity="0.55" />
+                            </Setter.Value>
+                        </Setter>
                     </Trigger>
                 </Style.Triggers>
             </Style>
@@ -34,49 +44,61 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <!-- Category accent stripe -->
+            <!-- Category accent stripe with gradient -->
             <Border Grid.Column="0"
                     x:Name="AccentStripe"
-                    Background="{DynamicResource SystemControlHighlightAccentBrush}"
-                    CornerRadius="10,0,0,10" />
+                    CornerRadius="12,0,0,12">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop x:Name="AccentStop1" Color="#8B5CF6" Offset="0" />
+                        <GradientStop x:Name="AccentStop2" Color="#5B21B6" Offset="1" />
+                    </LinearGradientBrush>
+                </Border.Background>
+            </Border>
 
             <!-- Content -->
-            <StackPanel Grid.Column="1" Orientation="Vertical" Margin="16,14,12,14">
-                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+            <StackPanel Grid.Column="1" Orientation="Vertical" Margin="20,16,12,16">
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
                     <TextBlock x:Name="NameText"
+                               FontFamily="{StaticResource ReSound.Font.Primary}"
                                FontSize="15"
                                FontWeight="SemiBold"
+                               Foreground="{StaticResource ReSound.Text.Primary}"
                                VerticalAlignment="Center" />
 
                     <Border x:Name="RiskBadge"
                             CornerRadius="10"
-                            Padding="8,2"
+                            Padding="10,3"
                             Margin="12,0,0,0"
-                            VerticalAlignment="Center"
-                            Background="{DynamicResource SystemControlHighlightAccentBrush}">
+                            VerticalAlignment="Center">
                         <TextBlock x:Name="RiskText"
                                    Text="SAFE"
                                    FontSize="10"
-                                   FontWeight="SemiBold"
-                                   Foreground="White" />
+                                   FontWeight="Bold"
+                                   Foreground="White"
+                                   TextOptions.TextFormattingMode="Display" />
                     </Border>
 
                     <Border x:Name="EvidenceBadge"
                             CornerRadius="10"
-                            Padding="8,2"
+                            Padding="10,3"
                             Margin="6,0,0,0"
                             VerticalAlignment="Center"
-                            Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}">
+                            Background="{StaticResource ReSound.Surface.Hover}"
+                            BorderThickness="1"
+                            BorderBrush="{StaticResource ReSound.Surface.Divider}">
                         <TextBlock x:Name="EvidenceText"
                                    Text="Confirmed"
                                    FontSize="10"
-                                   FontWeight="SemiBold" />
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource ReSound.Text.Secondary}" />
                     </Border>
                 </StackPanel>
 
                 <TextBlock x:Name="ShortDescriptionText"
+                           FontFamily="{StaticResource ReSound.Font.Primary}"
                            FontSize="13"
-                           Opacity="0.75"
+                           Foreground="{StaticResource ReSound.Text.Secondary}"
                            TextWrapping="Wrap" />
             </StackPanel>
 
@@ -84,7 +106,7 @@
             <Border Grid.Column="2"
                     x:Name="StatusPill"
                     CornerRadius="10"
-                    Padding="10,4"
+                    Padding="12,5"
                     Margin="0,0,8,0"
                     VerticalAlignment="Center"
                     Visibility="Collapsed"
@@ -108,20 +130,21 @@
             <!-- Help button -->
             <Button Grid.Column="3"
                     x:Name="HelpButton"
-                    Width="28"
-                    Height="28"
+                    Width="30"
+                    Height="30"
                     Margin="0,0,10,0"
                     VerticalAlignment="Center"
                     Background="Transparent"
-                    BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                    Foreground="{StaticResource ReSound.Text.Secondary}"
+                    BorderBrush="{StaticResource ReSound.Surface.Divider}"
                     BorderThickness="1"
                     ToolTipService.InitialShowDelay="200"
                     ToolTipService.ShowDuration="20000">
                 <Button.Content>
-                    <TextBlock Text="?" FontSize="14" FontWeight="SemiBold" />
+                    <TextBlock Text="?" FontSize="14" FontWeight="Bold" />
                 </Button.Content>
                 <Button.ToolTip>
-                    <ToolTip Placement="Left" MaxWidth="360">
+                    <ToolTip Placement="Left" MaxWidth="380">
                         <StackPanel>
                             <TextBlock x:Name="TooltipTitle" FontWeight="SemiBold" Margin="0,0,0,6" />
                             <TextBlock x:Name="TooltipDetailed" TextWrapping="Wrap" Margin="0,0,0,8" />
@@ -141,7 +164,7 @@
             <!-- Toggle -->
             <ui:ToggleSwitch Grid.Column="4"
                              x:Name="ApplyToggle"
-                             Margin="0,0,16,0"
+                             Margin="0,0,18,0"
                              VerticalAlignment="Center"
                              OnContent="On"
                              OffContent="Off"

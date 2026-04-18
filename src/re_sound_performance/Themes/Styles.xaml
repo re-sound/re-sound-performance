@@ -1,0 +1,71 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:ui="http://schemas.modernwpf.com/2019">
+
+    <!-- Typography -->
+    <FontFamily x:Key="ReSound.Font.Primary">Segoe UI Variable, Segoe UI, Arial</FontFamily>
+
+    <!-- Headings -->
+    <Style x:Key="ReSound.Text.Display" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource ReSound.Font.Primary}" />
+        <Setter Property="FontSize" Value="34" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{StaticResource ReSound.Text.Primary}" />
+    </Style>
+
+    <Style x:Key="ReSound.Text.Title" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource ReSound.Font.Primary}" />
+        <Setter Property="FontSize" Value="22" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{StaticResource ReSound.Text.Primary}" />
+    </Style>
+
+    <Style x:Key="ReSound.Text.Subtitle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource ReSound.Font.Primary}" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontWeight" Value="Normal" />
+        <Setter Property="Foreground" Value="{StaticResource ReSound.Text.Secondary}" />
+    </Style>
+
+    <Style x:Key="ReSound.Text.Body" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource ReSound.Font.Primary}" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Foreground" Value="{StaticResource ReSound.Text.Secondary}" />
+    </Style>
+
+    <Style x:Key="ReSound.Text.StatNumber" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource ReSound.Font.Primary}" />
+        <Setter Property="FontSize" Value="40" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{StaticResource ReSound.Text.Primary}" />
+    </Style>
+
+    <Style x:Key="ReSound.Text.StatLabel" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource ReSound.Font.Primary}" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{StaticResource ReSound.Text.Muted}" />
+        <Setter Property="TextOptions.TextFormattingMode" Value="Display" />
+    </Style>
+
+    <!-- Card surface -->
+    <Style x:Key="ReSound.Card" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource ReSound.Surface.Card}" />
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderBrush" Value="{StaticResource ReSound.Surface.Divider}" />
+        <Setter Property="Padding" Value="22" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+    </Style>
+
+    <Style x:Key="ReSound.Card.Stat" TargetType="Border" BasedOn="{StaticResource ReSound.Card}">
+        <Setter Property="Padding" Value="20" />
+        <Setter Property="MinHeight" Value="110" />
+    </Style>
+
+    <!-- Page shells -->
+    <Style x:Key="ReSound.PageRoot" TargetType="Grid">
+        <Setter Property="Background" Value="{StaticResource ReSound.Surface.AppBackground}" />
+    </Style>
+
+</ResourceDictionary>

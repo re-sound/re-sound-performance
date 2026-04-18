@@ -74,6 +74,9 @@ public static class ScheduledTaskHelper
 
         var applied = 0;
         var skipped = 0;
+        var accessDenied = 0;
+        var failures = new List<string>();
+
         foreach (var change in changes)
         {
             if (!manager.TaskExists(change.TaskPath))
@@ -82,17 +85,53 @@ public static class ScheduledTaskHelper
                 continue;
             }
 
-            manager.SetState(change.TaskPath, change.TargetState);
-            applied++;
+            var outcome = manager.TrySetState(change.TaskPath, change.TargetState);
+            if (outcome.IsSuccess)
+            {
+                applied++;
+                continue;
+            }
+
+            if (outcome.IsAccessDenied)
+            {
+                accessDenied++;
+            }
+            else
+            {
+                failures.Add(outcome.ErrorMessage ?? "Unknown error");
+            }
         }
 
-        if (applied == 0)
+        if (applied == 0 && accessDenied > 0 && failures.Count == 0)
+        {
+            return TweakResult.Ok(
+                tweakId,
+                TweakStatus.Unavailable,
+                new[] { backupReference },
+                "These scheduled tasks are protected by TrustedInstaller and cannot be disabled via schtasks. Use a service-based tweak instead.");
+        }
+
+        if (applied == 0 && skipped == changes.Count)
         {
             return TweakResult.Ok(tweakId, TweakStatus.Unavailable, new[] { backupReference }, "No matching scheduled tasks exist on this system.");
         }
 
-        var message = skipped > 0 ? $"Applied to {applied} of {changes.Count} tasks ({skipped} not present)." : null;
-        return TweakResult.Ok(tweakId, TweakStatus.Applied, new[] { backupReference }, message);
+        if (applied == 0 && failures.Count > 0)
+        {
+            return TweakResult.Fail(tweakId, failures[0]);
+        }
+
+        string? message = null;
+        if (skipped > 0 || accessDenied > 0)
+        {
+            var parts = new List<string> { $"Applied to {applied} of {changes.Count} tasks" };
+            if (skipped > 0) parts.Add($"{skipped} not present");
+            if (accessDenied > 0) parts.Add($"{accessDenied} protected by TrustedInstaller");
+            message = string.Join(", ", parts) + ".";
+        }
+
+        var status = accessDenied > 0 ? TweakStatus.PartiallyApplied : TweakStatus.Applied;
+        return TweakResult.Ok(tweakId, status, new[] { backupReference }, message);
     }
 
     public static async Task<TweakResult> RevertAsync(

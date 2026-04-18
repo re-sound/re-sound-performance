@@ -22,4 +22,24 @@ internal sealed class InMemoryScheduledTaskManager : IScheduledTaskManager
 
         _tasks[taskPath] = state;
     }
+
+    public SetStateOutcome TrySetState(string taskPath, ScheduledTaskState state)
+    {
+        if (_accessDenied.Contains(taskPath))
+        {
+            return new SetStateOutcome(SetStateResult.AccessDenied, "simulated access denied");
+        }
+
+        if (!_tasks.ContainsKey(taskPath))
+        {
+            return new SetStateOutcome(SetStateResult.Failed, $"Task {taskPath} does not exist.");
+        }
+
+        _tasks[taskPath] = state;
+        return new SetStateOutcome(SetStateResult.Success, null);
+    }
+
+    public void SimulateAccessDenied(string taskPath) => _accessDenied.Add(taskPath);
+
+    private readonly HashSet<string> _accessDenied = new(StringComparer.OrdinalIgnoreCase);
 }

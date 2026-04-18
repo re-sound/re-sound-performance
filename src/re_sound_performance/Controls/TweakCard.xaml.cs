@@ -134,13 +134,13 @@ public partial class TweakCard : UserControl
             _ => "UNKNOWN"
         };
 
-        RiskBadge.Background = metadata.Risk switch
+        RiskBadge.Background = ResourceBrush(metadata.Risk switch
         {
-            TweakRisk.Safe => new SolidColorBrush(Color.FromRgb(46, 125, 50)),
-            TweakRisk.Medium => new SolidColorBrush(Color.FromRgb(191, 118, 32)),
-            TweakRisk.High => new SolidColorBrush(Color.FromRgb(183, 28, 28)),
-            _ => new SolidColorBrush(Color.FromRgb(97, 97, 97))
-        };
+            TweakRisk.Safe => "ReSound.Risk.Safe",
+            TweakRisk.Medium => "ReSound.Risk.Medium",
+            TweakRisk.High => "ReSound.Risk.High",
+            _ => "ReSound.Surface.Muted"
+        });
 
         EvidenceText.Text = metadata.Evidence switch
         {
@@ -150,7 +150,9 @@ public partial class TweakCard : UserControl
             _ => "Unknown"
         };
 
-        AccentStripe.Background = CategoryAccent(metadata.Category);
+        var accent = CategoryColor(metadata.Category);
+        AccentStop1.Color = accent;
+        AccentStop2.Color = Darken(accent, 0.45);
 
         TooltipTitle.Text = metadata.Name;
         TooltipDetailed.Text = metadata.DetailedDescription;
@@ -160,18 +162,49 @@ public partial class TweakCard : UserControl
         TooltipSources.ItemsSource = metadata.Sources;
     }
 
-    private static SolidColorBrush CategoryAccent(TweakCategory category) => category switch
+    private static Color CategoryColor(TweakCategory category)
     {
-        TweakCategory.System => new SolidColorBrush(Color.FromRgb(0x0A, 0xA2, 0xA2)),
-        TweakCategory.Privacy => new SolidColorBrush(Color.FromRgb(0x8E, 0x44, 0xE0)),
-        TweakCategory.Debloat => new SolidColorBrush(Color.FromRgb(0xE6, 0x7E, 0x22)),
-        TweakCategory.Gpu => new SolidColorBrush(Color.FromRgb(0x7C, 0xB3, 0x42)),
-        TweakCategory.Network => new SolidColorBrush(Color.FromRgb(0x00, 0xBC, 0xD4)),
-        TweakCategory.Input => new SolidColorBrush(Color.FromRgb(0xEC, 0x40, 0x7A)),
-        TweakCategory.Power => new SolidColorBrush(Color.FromRgb(0xFF, 0xB3, 0x00)),
-        TweakCategory.Game => new SolidColorBrush(Color.FromRgb(0xE5, 0x39, 0x35)),
-        _ => new SolidColorBrush(Color.FromRgb(0x61, 0x61, 0x61))
-    };
+        var key = category switch
+        {
+            TweakCategory.System => "ReSound.Color.Category.System",
+            TweakCategory.Privacy => "ReSound.Color.Category.Privacy",
+            TweakCategory.Debloat => "ReSound.Color.Category.Debloat",
+            TweakCategory.Gpu => "ReSound.Color.Category.Gpu",
+            TweakCategory.Network => "ReSound.Color.Category.Network",
+            TweakCategory.Input => "ReSound.Color.Category.Input",
+            TweakCategory.Power => "ReSound.Color.Category.Power",
+            TweakCategory.Game => "ReSound.Color.Category.Game",
+            _ => "ReSound.Color.Accent"
+        };
+
+        if (Application.Current?.TryFindResource(key) is Color color)
+        {
+            return color;
+        }
+
+        return Colors.MediumPurple;
+    }
+
+    private static Color Darken(Color color, double factor)
+    {
+        factor = Math.Clamp(factor, 0, 1);
+        var scale = 1.0 - factor;
+        return Color.FromArgb(
+            color.A,
+            (byte)(color.R * scale),
+            (byte)(color.G * scale),
+            (byte)(color.B * scale));
+    }
+
+    private static Brush ResourceBrush(string key)
+    {
+        if (Application.Current?.TryFindResource(key) is Brush brush)
+        {
+            return brush;
+        }
+
+        return Brushes.Gray;
+    }
 
     private void RenderStatus(TweakCardStatus status)
     {
@@ -183,20 +216,20 @@ public partial class TweakCard : UserControl
 
         StatusPill.Visibility = Visibility.Visible;
 
-        var (icon, label, brush) = status switch
+        var (icon, label, brushKey) = status switch
         {
-            TweakCardStatus.Applying => ("...", "Applying", new SolidColorBrush(Color.FromRgb(0x1E, 0x88, 0xE5))),
-            TweakCardStatus.Reverting => ("...", "Reverting", new SolidColorBrush(Color.FromRgb(0x1E, 0x88, 0xE5))),
-            TweakCardStatus.Success => ("\u2713", "OK", new SolidColorBrush(Color.FromRgb(0x2E, 0x7D, 0x32))),
-            TweakCardStatus.Failed => ("\u2715", "Error", new SolidColorBrush(Color.FromRgb(0xB7, 0x1C, 0x1C))),
-            TweakCardStatus.Partial => ("\u25B2", "Partial", new SolidColorBrush(Color.FromRgb(0xBF, 0x76, 0x20))),
-            TweakCardStatus.Unavailable => ("\u2013", "N/A", new SolidColorBrush(Color.FromRgb(0x61, 0x61, 0x61))),
-            _ => (string.Empty, string.Empty, new SolidColorBrush(Color.FromRgb(0x61, 0x61, 0x61)))
+            TweakCardStatus.Applying => ("...", "Applying", "ReSound.Status.Info"),
+            TweakCardStatus.Reverting => ("...", "Reverting", "ReSound.Status.Info"),
+            TweakCardStatus.Success => ("\u2713", "OK", "ReSound.Status.Success"),
+            TweakCardStatus.Failed => ("\u2715", "Error", "ReSound.Status.Danger"),
+            TweakCardStatus.Partial => ("\u25B2", "Partial", "ReSound.Status.Warning"),
+            TweakCardStatus.Unavailable => ("\u2013", "N/A", "ReSound.Surface.Muted"),
+            _ => (string.Empty, string.Empty, "ReSound.Surface.Muted")
         };
 
         StatusIcon.Text = icon;
         StatusText.Text = label;
-        StatusPill.Background = brush;
+        StatusPill.Background = ResourceBrush(brushKey);
 
         RefreshStatusTooltip();
     }

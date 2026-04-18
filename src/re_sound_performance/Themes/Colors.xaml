@@ -1,0 +1,110 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Surfaces -->
+    <Color x:Key="ReSound.Color.Background">#FF0B0B12</Color>
+    <Color x:Key="ReSound.Color.Surface">#FF161620</Color>
+    <Color x:Key="ReSound.Color.SurfaceRaised">#FF1C1C2A</Color>
+    <Color x:Key="ReSound.Color.SurfaceHover">#FF23233A</Color>
+    <Color x:Key="ReSound.Color.Divider">#FF2A2A3C</Color>
+
+    <!-- Accents -->
+    <Color x:Key="ReSound.Color.Accent">#FF7C3AED</Color>
+    <Color x:Key="ReSound.Color.AccentLight">#FFA78BFA</Color>
+    <Color x:Key="ReSound.Color.AccentDeep">#FF5B21B6</Color>
+    <Color x:Key="ReSound.Color.AccentGlow">#807C3AED</Color>
+
+    <!-- Text -->
+    <Color x:Key="ReSound.Color.TextPrimary">#FFF3F4F6</Color>
+    <Color x:Key="ReSound.Color.TextSecondary">#FF9CA3AF</Color>
+    <Color x:Key="ReSound.Color.TextMuted">#FF6B7280</Color>
+
+    <!-- Status / Risk -->
+    <Color x:Key="ReSound.Color.Success">#FF10B981</Color>
+    <Color x:Key="ReSound.Color.Warning">#FFF59E0B</Color>
+    <Color x:Key="ReSound.Color.Danger">#FFEF4444</Color>
+    <Color x:Key="ReSound.Color.Info">#FF38BDF8</Color>
+
+    <!-- Categories -->
+    <Color x:Key="ReSound.Color.Category.System">#FF06B6D4</Color>
+    <Color x:Key="ReSound.Color.Category.Privacy">#FF8B5CF6</Color>
+    <Color x:Key="ReSound.Color.Category.Debloat">#FFF97316</Color>
+    <Color x:Key="ReSound.Color.Category.Gpu">#FF84CC16</Color>
+    <Color x:Key="ReSound.Color.Category.Network">#FF38BDF8</Color>
+    <Color x:Key="ReSound.Color.Category.Input">#FFEC4899</Color>
+    <Color x:Key="ReSound.Color.Category.Power">#FFEAB308</Color>
+    <Color x:Key="ReSound.Color.Category.Game">#FFEF4444</Color>
+
+    <!-- Brushes: Surfaces -->
+    <SolidColorBrush x:Key="ReSound.Surface.Background" Color="{StaticResource ReSound.Color.Background}" />
+    <SolidColorBrush x:Key="ReSound.Surface.Base" Color="{StaticResource ReSound.Color.Surface}" />
+    <SolidColorBrush x:Key="ReSound.Surface.Raised" Color="{StaticResource ReSound.Color.SurfaceRaised}" />
+    <SolidColorBrush x:Key="ReSound.Surface.Hover" Color="{StaticResource ReSound.Color.SurfaceHover}" />
+    <SolidColorBrush x:Key="ReSound.Surface.Divider" Color="{StaticResource ReSound.Color.Divider}" />
+    <SolidColorBrush x:Key="ReSound.Surface.Muted" Color="#FF3A3A4E" />
+
+    <!-- Surface gradient for cards -->
+    <LinearGradientBrush x:Key="ReSound.Surface.Card" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#FF181828" Offset="0" />
+        <GradientStop Color="#FF14141F" Offset="1" />
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="ReSound.Surface.CardHover" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#FF23233A" Offset="0" />
+        <GradientStop Color="#FF1B1B2E" Offset="1" />
+    </LinearGradientBrush>
+
+    <!-- App background (subtle vignette) -->
+    <RadialGradientBrush x:Key="ReSound.Surface.AppBackground" GradientOrigin="0.5,0.1" Center="0.5,0.1" RadiusX="1.2" RadiusY="1.2">
+        <GradientStop Color="#FF141425" Offset="0" />
+        <GradientStop Color="#FF0A0A12" Offset="0.8" />
+    </RadialGradientBrush>
+
+    <!-- Brushes: Accents -->
+    <SolidColorBrush x:Key="ReSound.Accent.Primary" Color="{StaticResource ReSound.Color.Accent}" />
+    <SolidColorBrush x:Key="ReSound.Accent.Light" Color="{StaticResource ReSound.Color.AccentLight}" />
+    <SolidColorBrush x:Key="ReSound.Accent.Deep" Color="{StaticResource ReSound.Color.AccentDeep}" />
+    <SolidColorBrush x:Key="ReSound.Accent.Glow" Color="{StaticResource ReSound.Color.AccentGlow}" />
+
+    <LinearGradientBrush x:Key="ReSound.Accent.Gradient" StartPoint="0,0" EndPoint="1,0">
+        <GradientStop Color="{StaticResource ReSound.Color.Accent}" Offset="0" />
+        <GradientStop Color="{StaticResource ReSound.Color.AccentLight}" Offset="1" />
+    </LinearGradientBrush>
+
+    <!-- Brushes: Text -->
+    <SolidColorBrush x:Key="ReSound.Text.Primary" Color="{StaticResource ReSound.Color.TextPrimary}" />
+    <SolidColorBrush x:Key="ReSound.Text.Secondary" Color="{StaticResource ReSound.Color.TextSecondary}" />
+    <SolidColorBrush x:Key="ReSound.Text.Muted" Color="{StaticResource ReSound.Color.TextMuted}" />
+
+    <!-- Brushes: Risk -->
+    <SolidColorBrush x:Key="ReSound.Risk.Safe" Color="{StaticResource ReSound.Color.Success}" />
+    <SolidColorBrush x:Key="ReSound.Risk.Medium" Color="{StaticResource ReSound.Color.Warning}" />
+    <SolidColorBrush x:Key="ReSound.Risk.High" Color="{StaticResource ReSound.Color.Danger}" />
+
+    <!-- Brushes: Status -->
+    <SolidColorBrush x:Key="ReSound.Status.Success" Color="{StaticResource ReSound.Color.Success}" />
+    <SolidColorBrush x:Key="ReSound.Status.Warning" Color="{StaticResource ReSound.Color.Warning}" />
+    <SolidColorBrush x:Key="ReSound.Status.Danger" Color="{StaticResource ReSound.Color.Danger}" />
+    <SolidColorBrush x:Key="ReSound.Status.Info" Color="{StaticResource ReSound.Color.Info}" />
+
+    <!-- Brushes: Categories -->
+    <SolidColorBrush x:Key="ReSound.Category.System" Color="{StaticResource ReSound.Color.Category.System}" />
+    <SolidColorBrush x:Key="ReSound.Category.Privacy" Color="{StaticResource ReSound.Color.Category.Privacy}" />
+    <SolidColorBrush x:Key="ReSound.Category.Debloat" Color="{StaticResource ReSound.Color.Category.Debloat}" />
+    <SolidColorBrush x:Key="ReSound.Category.Gpu" Color="{StaticResource ReSound.Color.Category.Gpu}" />
+    <SolidColorBrush x:Key="ReSound.Category.Network" Color="{StaticResource ReSound.Color.Category.Network}" />
+    <SolidColorBrush x:Key="ReSound.Category.Input" Color="{StaticResource ReSound.Color.Category.Input}" />
+    <SolidColorBrush x:Key="ReSound.Category.Power" Color="{StaticResource ReSound.Color.Category.Power}" />
+    <SolidColorBrush x:Key="ReSound.Category.Game" Color="{StaticResource ReSound.Color.Category.Game}" />
+
+    <!-- Overrides for ModernWpf system resources -->
+    <SolidColorBrush x:Key="SystemControlPageBackgroundChromeLowBrush" Color="{StaticResource ReSound.Color.Background}" />
+    <SolidColorBrush x:Key="SystemControlPageBackgroundAltHighBrush" Color="{StaticResource ReSound.Color.Background}" />
+    <SolidColorBrush x:Key="SystemControlBackgroundChromeMediumLowBrush" Color="{StaticResource ReSound.Color.Surface}" />
+    <SolidColorBrush x:Key="SystemControlBackgroundChromeMediumBrush" Color="{StaticResource ReSound.Color.SurfaceRaised}" />
+    <SolidColorBrush x:Key="SystemControlHighlightAccentBrush" Color="{StaticResource ReSound.Color.Accent}" />
+    <SolidColorBrush x:Key="SystemControlHighlightAltAccentBrush" Color="{StaticResource ReSound.Color.AccentLight}" />
+    <SolidColorBrush x:Key="SystemAccentColorBrush" Color="{StaticResource ReSound.Color.Accent}" />
+    <Color x:Key="SystemAccentColor">#FF7C3AED</Color>
+
+</ResourceDictionary>

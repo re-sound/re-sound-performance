@@ -3,11 +3,12 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:ui="http://schemas.modernwpf.com/2019"
       xmlns:controls="clr-namespace:re_sound_performance.Controls"
+      Background="{StaticResource ReSound.Surface.AppBackground}"
       Title="System tweaks">
-    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="40,20">
-        <StackPanel MaxWidth="1040" HorizontalAlignment="Left">
-            <TextBlock Text="System tweaks" FontSize="32" FontWeight="SemiBold" Margin="0,0,0,4" />
-            <TextBlock Text="Core Windows 11 optimizations. Every tweak is reversible and post-apply verified." Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" FontSize="14" Margin="0,0,0,24" />
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="44,32,44,40">
+        <StackPanel MaxWidth="1100" HorizontalAlignment="Left">
+            <TextBlock Style="{StaticResource ReSound.Text.Display}" Text="System tweaks" Margin="0,0,0,6" />
+            <TextBlock Style="{StaticResource ReSound.Text.Subtitle}" Text="Core Windows 11 optimizations. Every tweak is reversible and post-apply verified." Margin="0,0,0,24" />
 
             <ItemsControl x:Name="TweaksList">
                 <ItemsControl.ItemsPanel>

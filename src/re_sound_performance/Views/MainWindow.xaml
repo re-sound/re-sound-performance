@@ -10,12 +10,14 @@
         MinWidth="1000"
         ui:WindowHelper.UseModernWindowStyle="True"
         ui:TitleBar.ExtendViewIntoTitleBar="True"
-        ui:TitleBar.Background="Transparent">
+        ui:TitleBar.Background="Transparent"
+        Background="{StaticResource ReSound.Surface.Background}">
 
     <ui:NavigationView x:Name="RootNav"
                        PaneDisplayMode="Left"
                        IsSettingsVisible="True"
                        IsBackButtonVisible="Collapsed"
+                       Background="Transparent"
                        SelectionChanged="RootNav_SelectionChanged">
 
         <ui:NavigationView.MenuItems>

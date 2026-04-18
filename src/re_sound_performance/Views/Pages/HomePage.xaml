@@ -2,57 +2,131 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:ui="http://schemas.modernwpf.com/2019"
+      Background="{StaticResource ReSound.Surface.AppBackground}"
       Title="Home">
-    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="40,20">
-        <StackPanel MaxWidth="1040" HorizontalAlignment="Left">
-            <TextBlock Text="re_sound Performance" FontSize="32" FontWeight="SemiBold" Margin="0,0,0,4" />
-            <TextBlock Text="Windows 11 gaming optimization" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" FontSize="16" Margin="0,0,0,24" />
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="44,32,44,40">
+        <StackPanel MaxWidth="1100" HorizontalAlignment="Left">
+
+            <!-- Hero -->
+            <Border CornerRadius="16"
+                    Padding="30,26"
+                    Margin="0,0,0,24"
+                    BorderThickness="1"
+                    BorderBrush="{StaticResource ReSound.Surface.Divider}">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Color="#FF1C1030" Offset="0" />
+                        <GradientStop Color="#FF120D24" Offset="1" />
+                    </LinearGradientBrush>
+                </Border.Background>
+                <Border.Effect>
+                    <DropShadowEffect Color="#7C3AED" BlurRadius="30" ShadowDepth="0" Opacity="0.25" />
+                </Border.Effect>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <Border CornerRadius="8" Padding="8,3" HorizontalAlignment="Left" Margin="0,0,0,10"
+                                Background="{StaticResource ReSound.Accent.Deep}">
+                            <TextBlock Text="RE_SOUND PERFORMANCE"
+                                       FontSize="10"
+                                       FontWeight="Bold"
+                                       Foreground="{StaticResource ReSound.Accent.Light}"
+                                       TextOptions.TextFormattingMode="Display" />
+                        </Border>
+                        <TextBlock Style="{StaticResource ReSound.Text.Display}" Text="Windows 11 gaming optimization" Margin="0,0,0,6" />
+                        <TextBlock Style="{StaticResource ReSound.Text.Subtitle}" TextWrapping="Wrap" MaxWidth="720"
+                                   Text="Tune Windows for low-latency, high-FPS gaming. Every tweak is probed, reversible and documented — no registry files from a stranger, no black magic." />
+                    </StackPanel>
+
+                    <Ellipse Grid.Column="1"
+                             Width="160"
+                             Height="160"
+                             Margin="40,0,0,0"
+                             VerticalAlignment="Center"
+                             HorizontalAlignment="Right">
+                        <Ellipse.Fill>
+                            <RadialGradientBrush>
+                                <GradientStop Color="#807C3AED" Offset="0" />
+                                <GradientStop Color="#007C3AED" Offset="1" />
+                            </RadialGradientBrush>
+                        </Ellipse.Fill>
+                    </Ellipse>
+                </Grid>
+            </Border>
+
+            <!-- Probing progress -->
+            <Grid x:Name="ProbingRow" Margin="0,0,0,18" Visibility="Collapsed">
+                <Border CornerRadius="10"
+                        Padding="16,12"
+                        Background="{StaticResource ReSound.Surface.Base}"
+                        BorderThickness="1"
+                        BorderBrush="{StaticResource ReSound.Surface.Divider}">
+                    <StackPanel>
+                        <TextBlock x:Name="ProbingText" Style="{StaticResource ReSound.Text.Body}" Text="Scanning system state…" Margin="0,0,0,6" />
+                        <Grid Height="4">
+                            <Border CornerRadius="2" Background="{StaticResource ReSound.Surface.Hover}" />
+                            <Border x:Name="ProbingBar" Width="8"
+                                    HorizontalAlignment="Left"
+                                    CornerRadius="2"
+                                    Background="{StaticResource ReSound.Accent.Gradient}" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </Grid>
 
             <!-- Headline stat row -->
             <Grid Margin="0,0,0,18">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="14" />
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="14" />
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="14" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
-                <Border Grid.Column="0" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" CornerRadius="10" Padding="18">
+                <Border Grid.Column="0" Style="{StaticResource ReSound.Card.Stat}">
                     <StackPanel>
-                        <TextBlock Text="Total tweaks" FontSize="13" Opacity="0.65" />
-                        <TextBlock x:Name="TotalTweaksText" FontSize="34" FontWeight="SemiBold" Margin="0,4,0,0" />
+                        <TextBlock Style="{StaticResource ReSound.Text.StatLabel}" Text="TOTAL TWEAKS" />
+                        <TextBlock x:Name="TotalTweaksText" Style="{StaticResource ReSound.Text.StatNumber}" Text="0" Margin="0,6,0,0" />
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Column="2" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" CornerRadius="10" Padding="18">
+                <Border Grid.Column="2" Style="{StaticResource ReSound.Card.Stat}">
                     <StackPanel>
-                        <TextBlock Text="Applied" FontSize="13" Opacity="0.65" />
-                        <TextBlock x:Name="AppliedTweaksText" FontSize="34" FontWeight="SemiBold" Margin="0,4,0,0" Foreground="{DynamicResource SystemControlHighlightAccentBrush}" />
+                        <TextBlock Style="{StaticResource ReSound.Text.StatLabel}" Text="APPLIED" />
+                        <TextBlock x:Name="AppliedTweaksText" Style="{StaticResource ReSound.Text.StatNumber}" Text="0" Margin="0,6,0,0"
+                                   Foreground="{StaticResource ReSound.Accent.Light}" />
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Column="4" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" CornerRadius="10" Padding="18">
+                <Border Grid.Column="4" Style="{StaticResource ReSound.Card.Stat}">
                     <StackPanel>
-                        <TextBlock Text="Partial / unavailable" FontSize="13" Opacity="0.65" />
-                        <TextBlock x:Name="PartialTweaksText" FontSize="34" FontWeight="SemiBold" Margin="0,4,0,0" />
+                        <TextBlock Style="{StaticResource ReSound.Text.StatLabel}" Text="PARTIAL / UNAVAILABLE" />
+                        <TextBlock x:Name="PartialTweaksText" Style="{StaticResource ReSound.Text.StatNumber}" Text="0" Margin="0,6,0,0"
+                                   Foreground="{StaticResource ReSound.Status.Warning}" />
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Column="6" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" CornerRadius="10" Padding="18">
+                <Border Grid.Column="6" Style="{StaticResource ReSound.Card.Stat}">
                     <StackPanel>
-                        <TextBlock Text="High-risk applied" FontSize="13" Opacity="0.65" />
-                        <TextBlock x:Name="HighRiskAppliedText" FontSize="34" FontWeight="SemiBold" Margin="0,4,0,0" />
+                        <TextBlock Style="{StaticResource ReSound.Text.StatLabel}" Text="HIGH-RISK APPLIED" />
+                        <TextBlock x:Name="HighRiskAppliedText" Style="{StaticResource ReSound.Text.StatNumber}" Text="0" Margin="0,6,0,0"
+                                   Foreground="{StaticResource ReSound.Status.Danger}" />
                     </StackPanel>
                 </Border>
             </Grid>
 
             <!-- Risk breakdown -->
-            <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" CornerRadius="10" Padding="20" Margin="0,0,0,12">
+            <Border Style="{StaticResource ReSound.Card}" Margin="0,0,0,14">
                 <StackPanel>
-                    <TextBlock Text="Coverage by risk" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,12" />
+                    <TextBlock Style="{StaticResource ReSound.Text.Title}" FontSize="16" Text="Coverage by risk" Margin="0,0,0,14" />
                     <ItemsControl x:Name="RiskBreakdownList">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
@@ -64,9 +138,9 @@
             </Border>
 
             <!-- Category breakdown -->
-            <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" CornerRadius="10" Padding="20" Margin="0,0,0,12">
+            <Border Style="{StaticResource ReSound.Card}" Margin="0,0,0,14">
                 <StackPanel>
-                    <TextBlock Text="Coverage by category" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,12" />
+                    <TextBlock Style="{StaticResource ReSound.Text.Title}" FontSize="16" Text="Coverage by category" Margin="0,0,0,14" />
                     <ItemsControl x:Name="CategoryBreakdownList">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
@@ -77,10 +151,11 @@
                 </StackPanel>
             </Border>
 
-            <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" CornerRadius="10" Padding="20">
+            <Border Style="{StaticResource ReSound.Card}">
                 <ui:SimpleStackPanel Spacing="6">
-                    <TextBlock Text="Next on the roadmap" FontSize="16" FontWeight="SemiBold" />
-                    <TextBlock Opacity="0.75" TextWrapping="Wrap" Text="Hardware detection with anti-cheat awareness, preset selector (Safe / Balanced / Competitive) and per-game tabs will land in upcoming iterations." />
+                    <TextBlock Style="{StaticResource ReSound.Text.Title}" FontSize="16" Text="Next on the roadmap" />
+                    <TextBlock Style="{StaticResource ReSound.Text.Body}" TextWrapping="Wrap"
+                               Text="Hardware detection with anti-cheat awareness, preset selector (Safe / Balanced / Competitive) and per-game tabs will land in upcoming iterations." />
                 </ui:SimpleStackPanel>
             </Border>
         </StackPanel>

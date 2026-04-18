@@ -17,6 +17,7 @@ namespace re_sound_performance;
 public partial class App : Application
 {
     private IServiceProvider? _services;
+    private Mutex? _instanceMutex;
 
     public IServiceProvider Services => _services ?? throw new InvalidOperationException("Services not initialized.");
 
@@ -24,12 +25,33 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
+        if (!SingleInstanceGuard.TryAcquire(out _instanceMutex))
+        {
+            Shutdown();
+            return;
+        }
+
         var services = new ServiceCollection();
         ConfigureServices(services);
         _services = services.BuildServiceProvider();
 
         var main = _services.GetRequiredService<MainWindow>();
         main.Show();
+
+        var engine = _services.GetRequiredService<TweakEngine>();
+        _ = engine.ProbeAllAsync();
+    }
+
+    protected override void OnExit(ExitEventArgs e)
+    {
+        if (_instanceMutex is not null)
+        {
+            try { _instanceMutex.ReleaseMutex(); } catch { }
+            _instanceMutex.Dispose();
+            _instanceMutex = null;
+        }
+
+        base.OnExit(e);
     }
 
     private static void ConfigureServices(IServiceCollection services)
@@ -49,6 +71,8 @@ public partial class App : Application
         services.AddSingleton<IBackupStore>(_ => new FileSystemBackupStore(backupRoot));
 
         services.AddSingleton<RestorePointManager>();
+
+        services.AddSingleton<TweakStateCache>();
 
         services.AddSingleton<ITweak, DisableXboxGameBarTweak>();
         services.AddSingleton<ITweak, DisableGameDvrTweak>();
@@ -76,6 +100,7 @@ public partial class App : Application
 
         services.AddSingleton<ITweak, DisableTelemetryScheduledTasksTweak>();
         services.AddSingleton<ITweak, DisableUpdateOrchestratorTasksTweak>();
+        services.AddSingleton<ITweak, DisableUsoSvcTweak>();
 
         services.AddSingleton<ITweak, RemoveTeamsConsumerTweak>();
         services.AddSingleton<ITweak, RemoveClipchampTweak>();

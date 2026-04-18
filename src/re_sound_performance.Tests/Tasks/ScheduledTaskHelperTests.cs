@@ -92,6 +92,50 @@ public sealed class ScheduledTaskHelperTests
     }
 
     [Fact]
+    public async Task ApplyAsync_WhenAllTasksAccessDenied_ReportsUnavailableWithTrustedInstallerHint()
+    {
+        var manager = new InMemoryScheduledTaskManager();
+        manager.Seed(@"\Protected\Task1", ScheduledTaskState.Ready);
+        manager.Seed(@"\Protected\Task2", ScheduledTaskState.Ready);
+        manager.SimulateAccessDenied(@"\Protected\Task1");
+        manager.SimulateAccessDenied(@"\Protected\Task2");
+        var backup = new InMemoryBackupStore();
+        var changes = new[]
+        {
+            new ScheduledTaskChange(@"\Protected\Task1", ScheduledTaskState.Disabled),
+            new ScheduledTaskChange(@"\Protected\Task2", ScheduledTaskState.Disabled)
+        };
+
+        var result = await ScheduledTaskHelper.ApplyAsync(manager, backup, "test.tweak", changes);
+
+        result.Success.Should().BeTrue();
+        result.ResultingStatus.Should().Be(TweakStatus.Unavailable);
+        result.Message.Should().Contain("TrustedInstaller");
+    }
+
+    [Fact]
+    public async Task ApplyAsync_WhenSomeTasksAccessDenied_ReportsPartiallyApplied()
+    {
+        var manager = new InMemoryScheduledTaskManager();
+        manager.Seed(@"\Ok", ScheduledTaskState.Ready);
+        manager.Seed(@"\Protected", ScheduledTaskState.Ready);
+        manager.SimulateAccessDenied(@"\Protected");
+        var backup = new InMemoryBackupStore();
+        var changes = new[]
+        {
+            new ScheduledTaskChange(@"\Ok", ScheduledTaskState.Disabled),
+            new ScheduledTaskChange(@"\Protected", ScheduledTaskState.Disabled)
+        };
+
+        var result = await ScheduledTaskHelper.ApplyAsync(manager, backup, "test.tweak", changes);
+
+        result.Success.Should().BeTrue();
+        result.ResultingStatus.Should().Be(TweakStatus.PartiallyApplied);
+        result.Message.Should().Contain("protected");
+        manager.GetState(@"\Ok").Should().Be(ScheduledTaskState.Disabled);
+    }
+
+    [Fact]
     public async Task RevertAsync_WithoutBackup_ReportsNotApplied()
     {
         var manager = new InMemoryScheduledTaskManager();

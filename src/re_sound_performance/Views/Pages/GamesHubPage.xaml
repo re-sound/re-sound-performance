@@ -2,12 +2,15 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:ui="http://schemas.modernwpf.com/2019"
+      Background="{StaticResource ReSound.Surface.AppBackground}"
       Title="Per-game">
-    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="40,20">
-        <StackPanel MaxWidth="1000" HorizontalAlignment="Left">
-            <TextBlock Text="Per-game optimization" FontSize="32" FontWeight="SemiBold" Margin="0,0,0,4" />
-            <TextBlock Text="Competitive titles with dedicated tweak profiles and pro configs" FontSize="14" Opacity="0.7" Margin="0,0,0,24" />
-            <TextBlock Text="Select a game from the sidebar." Opacity="0.5" />
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="44,32,44,40">
+        <StackPanel MaxWidth="1100" HorizontalAlignment="Left">
+            <TextBlock Style="{StaticResource ReSound.Text.Display}" Text="Per-game optimization" Margin="0,0,0,6" />
+            <TextBlock Style="{StaticResource ReSound.Text.Subtitle}" Text="Competitive titles with dedicated tweak profiles and pro configs." Margin="0,0,0,24" />
+            <Border Style="{StaticResource ReSound.Card}">
+                <TextBlock Style="{StaticResource ReSound.Text.Body}" Text="Select a game from the sidebar." />
+            </Border>
         </StackPanel>
     </ScrollViewer>
 </Page>

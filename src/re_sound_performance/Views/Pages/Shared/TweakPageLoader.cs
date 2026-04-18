@@ -8,7 +8,7 @@ namespace re_sound_performance.Views.Pages.Shared;
 
 internal static class TweakPageLoader
 {
-    public static async Task PopulateAsync(TweakEngine engine, ItemsControl host, IReadOnlyCollection<TweakCategory> allowedCategories)
+    public static Task PopulateAsync(TweakEngine engine, ItemsControl host, IReadOnlyCollection<TweakCategory> allowedCategories)
     {
         host.Items.Clear();
 
@@ -26,8 +26,11 @@ internal static class TweakPageLoader
                 Opacity = 0.6,
                 Margin = new Thickness(0, 8, 0, 0)
             });
-            return;
+            return Task.CompletedTask;
         }
+
+        var cache = engine.StateCache;
+        var cardsById = new Dictionary<string, TweakCard>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var group in grouped)
         {
@@ -39,12 +42,47 @@ internal static class TweakPageLoader
                 var capturedTweak = tweak;
                 card.ToggleRequested += async (_, _) => await OnToggleAsync(engine, card, capturedTweak).ConfigureAwait(true);
                 host.Items.Add(card);
+                cardsById[tweak.Metadata.Id] = card;
 
-                var status = await Task.Run(() => engine.ProbeAsync(tweak.Metadata.Id)).ConfigureAwait(true);
-                card.SetAppliedSilently(status == TweakStatus.Applied);
-                card.Status = MapInitialStatus(status);
+                if (cache.TryGet(tweak.Metadata.Id, out var cachedStatus) && cachedStatus != TweakStatus.Unknown)
+                {
+                    ApplyCachedStatus(card, cachedStatus);
+                }
+                else
+                {
+                    card.Status = TweakCardStatus.Idle;
+                }
             }
         }
+
+        EventHandler<TweakStateChangedEventArgs>? handler = null;
+        handler = (_, args) =>
+        {
+            if (!cardsById.TryGetValue(args.TweakId, out var card))
+            {
+                return;
+            }
+
+            if (!host.Dispatcher.CheckAccess())
+            {
+                host.Dispatcher.BeginInvoke(new Action(() => ApplyCachedStatus(card, args.Status)));
+            }
+            else
+            {
+                ApplyCachedStatus(card, args.Status);
+            }
+        };
+
+        cache.StateChanged += handler;
+        host.Unloaded += (_, _) => cache.StateChanged -= handler;
+
+        return Task.CompletedTask;
+    }
+
+    private static void ApplyCachedStatus(TweakCard card, TweakStatus status)
+    {
+        card.SetAppliedSilently(status == TweakStatus.Applied);
+        card.Status = MapInitialStatus(status);
     }
 
     private static async Task OnToggleAsync(TweakEngine engine, TweakCard card, ITweak tweak)
@@ -61,7 +99,7 @@ internal static class TweakPageLoader
                 ? await Task.Run(() => engine.ApplyAsync(tweak.Metadata.Id)).ConfigureAwait(true)
                 : await Task.Run(() => engine.RevertAsync(tweak.Metadata.Id)).ConfigureAwait(true);
 
-            var verified = await Task.Run(() => engine.ProbeAsync(tweak.Metadata.Id)).ConfigureAwait(true);
+            var verified = engine.StateCache.GetOrUnknown(tweak.Metadata.Id);
             card.SetAppliedSilently(verified == TweakStatus.Applied);
 
             if (!result.Success)
@@ -101,6 +139,7 @@ internal static class TweakPageLoader
 
     private static TweakCardStatus MapInitialStatus(TweakStatus status) => status switch
     {
+        TweakStatus.Applied => TweakCardStatus.Success,
         TweakStatus.PartiallyApplied => TweakCardStatus.Partial,
         TweakStatus.Unavailable => TweakCardStatus.Unavailable,
         _ => TweakCardStatus.Idle
@@ -111,7 +150,7 @@ internal static class TweakPageLoader
         var panel = new StackPanel
         {
             Orientation = Orientation.Horizontal,
-            Margin = new Thickness(2, 16, 0, 8)
+            Margin = new Thickness(2, 20, 0, 10)
         };
 
         panel.Children.Add(new Border
@@ -169,16 +208,26 @@ internal static class TweakPageLoader
         _ => 99
     };
 
-    private static SolidColorBrush CategoryAccentBrush(TweakCategory category) => category switch
+    private static Brush CategoryAccentBrush(TweakCategory category)
     {
-        TweakCategory.System => new SolidColorBrush(Color.FromRgb(0x0A, 0xA2, 0xA2)),
-        TweakCategory.Privacy => new SolidColorBrush(Color.FromRgb(0x8E, 0x44, 0xE0)),
-        TweakCategory.Debloat => new SolidColorBrush(Color.FromRgb(0xE6, 0x7E, 0x22)),
-        TweakCategory.Gpu => new SolidColorBrush(Color.FromRgb(0x7C, 0xB3, 0x42)),
-        TweakCategory.Network => new SolidColorBrush(Color.FromRgb(0x00, 0xBC, 0xD4)),
-        TweakCategory.Input => new SolidColorBrush(Color.FromRgb(0xEC, 0x40, 0x7A)),
-        TweakCategory.Power => new SolidColorBrush(Color.FromRgb(0xFF, 0xB3, 0x00)),
-        TweakCategory.Game => new SolidColorBrush(Color.FromRgb(0xE5, 0x39, 0x35)),
-        _ => new SolidColorBrush(Color.FromRgb(0x61, 0x61, 0x61))
-    };
+        var key = category switch
+        {
+            TweakCategory.System => "ReSound.Category.System",
+            TweakCategory.Privacy => "ReSound.Category.Privacy",
+            TweakCategory.Debloat => "ReSound.Category.Debloat",
+            TweakCategory.Gpu => "ReSound.Category.Gpu",
+            TweakCategory.Network => "ReSound.Category.Network",
+            TweakCategory.Input => "ReSound.Category.Input",
+            TweakCategory.Power => "ReSound.Category.Power",
+            TweakCategory.Game => "ReSound.Category.Game",
+            _ => "ReSound.Surface.Muted"
+        };
+
+        if (Application.Current?.TryFindResource(key) is Brush brush)
+        {
+            return brush;
+        }
+
+        return Brushes.Gray;
+    }
 }

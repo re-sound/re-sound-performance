@@ -9,33 +9,72 @@ namespace re_sound_performance.Views.Pages;
 public partial class HomePage : Page
 {
     private readonly TweakEngine _engine;
+    private readonly TweakStateCache _cache;
+    private EventHandler<TweakStateChangedEventArgs>? _stateHandler;
+    private EventHandler<TweakProbingProgressEventArgs>? _progressHandler;
 
     public HomePage()
     {
         InitializeComponent();
-        _engine = ((App)Application.Current).Services.GetRequiredService<TweakEngine>();
+        var services = ((App)Application.Current).Services;
+        _engine = services.GetRequiredService<TweakEngine>();
+        _cache = _engine.StateCache;
+
         Loaded += OnLoaded;
+        Unloaded += OnUnloaded;
     }
 
-    private async void OnLoaded(object sender, RoutedEventArgs e)
+    private void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        Render();
+
+        _stateHandler = (_, _) => Dispatcher.BeginInvoke(new Action(Render));
+        _progressHandler = (_, args) => Dispatcher.BeginInvoke(new Action(() => UpdateProgress(args)));
+
+        _cache.StateChanged += _stateHandler;
+        _cache.ProbingProgress += _progressHandler;
+    }
+
+    private void OnUnloaded(object sender, RoutedEventArgs e)
+    {
+        if (_stateHandler is not null)
+        {
+            _cache.StateChanged -= _stateHandler;
+            _stateHandler = null;
+        }
+
+        if (_progressHandler is not null)
+        {
+            _cache.ProbingProgress -= _progressHandler;
+            _progressHandler = null;
+        }
+    }
+
+    private void UpdateProgress(TweakProbingProgressEventArgs args)
+    {
+        if (args.IsComplete || args.Total == 0)
+        {
+            ProbingRow.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        ProbingRow.Visibility = Visibility.Visible;
+        ProbingText.Text = $"Scanning system state… {args.Completed}/{args.Total}";
+        var ratio = args.Total > 0 ? (double)args.Completed / args.Total : 0;
+        ProbingBar.Width = Math.Max(8, 360 * ratio);
+    }
+
+    private void Render()
     {
         var tweaks = _engine.AvailableTweaks.ToList();
+        var probed = tweaks
+            .Select(t => (Tweak: t, Status: _cache.GetOrUnknown(t.Metadata.Id)))
+            .Where(s => s.Status != TweakStatus.Unknown)
+            .ToList();
 
-        var statuses = await Task.Run(async () =>
-        {
-            var collected = new List<(ITweak Tweak, TweakStatus Status)>(tweaks.Count);
-            foreach (var tweak in tweaks)
-            {
-                var status = await _engine.ProbeAsync(tweak.Metadata.Id).ConfigureAwait(false);
-                collected.Add((tweak, status));
-            }
-
-            return collected;
-        }).ConfigureAwait(true);
-
-        var applied = statuses.Count(s => s.Status == TweakStatus.Applied);
-        var partial = statuses.Count(s => s.Status is TweakStatus.PartiallyApplied or TweakStatus.Unavailable);
-        var highRiskApplied = statuses.Count(s => s.Status == TweakStatus.Applied && s.Tweak.Metadata.Risk != TweakRisk.Safe);
+        var applied = probed.Count(s => s.Status == TweakStatus.Applied);
+        var partial = probed.Count(s => s.Status is TweakStatus.PartiallyApplied or TweakStatus.Unavailable);
+        var highRiskApplied = probed.Count(s => s.Status == TweakStatus.Applied && s.Tweak.Metadata.Risk != TweakRisk.Safe);
 
         TotalTweaksText.Text = tweaks.Count.ToString();
         AppliedTweaksText.Text = applied.ToString();
@@ -45,13 +84,13 @@ public partial class HomePage : Page
         RiskBreakdownList.Items.Clear();
         foreach (var risk in new[] { TweakRisk.Safe, TweakRisk.Medium, TweakRisk.High })
         {
-            var forRisk = statuses.Where(s => s.Tweak.Metadata.Risk == risk).ToList();
+            var forRisk = tweaks.Where(t => t.Metadata.Risk == risk).ToList();
             if (forRisk.Count == 0)
             {
                 continue;
             }
 
-            var appliedForRisk = forRisk.Count(s => s.Status == TweakStatus.Applied);
+            var appliedForRisk = forRisk.Count(t => _cache.GetOrUnknown(t.Metadata.Id) == TweakStatus.Applied);
             RiskBreakdownList.Items.Add(BuildProgressRow(
                 RiskLabel(risk),
                 RiskBrush(risk),
@@ -60,9 +99,9 @@ public partial class HomePage : Page
         }
 
         CategoryBreakdownList.Items.Clear();
-        foreach (var group in statuses.GroupBy(s => s.Tweak.Metadata.Category).OrderBy(g => CategoryOrder(g.Key)))
+        foreach (var group in tweaks.GroupBy(t => t.Metadata.Category).OrderBy(g => CategoryOrder(g.Key)))
         {
-            var appliedForCategory = group.Count(s => s.Status == TweakStatus.Applied);
+            var appliedForCategory = group.Count(t => _cache.GetOrUnknown(t.Metadata.Id) == TweakStatus.Applied);
             CategoryBreakdownList.Items.Add(BuildProgressRow(
                 CategoryLabel(group.Key),
                 CategoryBrush(group.Key),
@@ -126,13 +165,18 @@ public partial class HomePage : Page
         _ => "Unknown"
     };
 
-    private static SolidColorBrush RiskBrush(TweakRisk risk) => risk switch
+    private static Brush RiskBrush(TweakRisk risk)
     {
-        TweakRisk.Safe => new SolidColorBrush(Color.FromRgb(0x2E, 0x7D, 0x32)),
-        TweakRisk.Medium => new SolidColorBrush(Color.FromRgb(0xBF, 0x76, 0x20)),
-        TweakRisk.High => new SolidColorBrush(Color.FromRgb(0xB7, 0x1C, 0x1C)),
-        _ => new SolidColorBrush(Color.FromRgb(0x61, 0x61, 0x61))
-    };
+        var key = risk switch
+        {
+            TweakRisk.Safe => "ReSound.Risk.Safe",
+            TweakRisk.Medium => "ReSound.Risk.Medium",
+            TweakRisk.High => "ReSound.Risk.High",
+            _ => "ReSound.Surface.Muted"
+        };
+
+        return (Application.Current?.TryFindResource(key) as Brush) ?? Brushes.Gray;
+    }
 
     private static string CategoryLabel(TweakCategory category) => category switch
     {
@@ -147,18 +191,23 @@ public partial class HomePage : Page
         _ => category.ToString()
     };
 
-    private static SolidColorBrush CategoryBrush(TweakCategory category) => category switch
+    private static Brush CategoryBrush(TweakCategory category)
     {
-        TweakCategory.System => new SolidColorBrush(Color.FromRgb(0x0A, 0xA2, 0xA2)),
-        TweakCategory.Privacy => new SolidColorBrush(Color.FromRgb(0x8E, 0x44, 0xE0)),
-        TweakCategory.Debloat => new SolidColorBrush(Color.FromRgb(0xE6, 0x7E, 0x22)),
-        TweakCategory.Gpu => new SolidColorBrush(Color.FromRgb(0x7C, 0xB3, 0x42)),
-        TweakCategory.Network => new SolidColorBrush(Color.FromRgb(0x00, 0xBC, 0xD4)),
-        TweakCategory.Input => new SolidColorBrush(Color.FromRgb(0xEC, 0x40, 0x7A)),
-        TweakCategory.Power => new SolidColorBrush(Color.FromRgb(0xFF, 0xB3, 0x00)),
-        TweakCategory.Game => new SolidColorBrush(Color.FromRgb(0xE5, 0x39, 0x35)),
-        _ => new SolidColorBrush(Color.FromRgb(0x61, 0x61, 0x61))
-    };
+        var key = category switch
+        {
+            TweakCategory.System => "ReSound.Category.System",
+            TweakCategory.Privacy => "ReSound.Category.Privacy",
+            TweakCategory.Debloat => "ReSound.Category.Debloat",
+            TweakCategory.Gpu => "ReSound.Category.Gpu",
+            TweakCategory.Network => "ReSound.Category.Network",
+            TweakCategory.Input => "ReSound.Category.Input",
+            TweakCategory.Power => "ReSound.Category.Power",
+            TweakCategory.Game => "ReSound.Category.Game",
+            _ => "ReSound.Surface.Muted"
+        };
+
+        return (Application.Current?.TryFindResource(key) as Brush) ?? Brushes.Gray;
+    }
 
     private static int CategoryOrder(TweakCategory category) => category switch
     {

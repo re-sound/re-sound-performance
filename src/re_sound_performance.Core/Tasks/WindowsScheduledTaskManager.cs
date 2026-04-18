@@ -54,6 +54,15 @@ public sealed class WindowsScheduledTaskManager : IScheduledTaskManager
 
     public void SetState(string taskPath, ScheduledTaskState state)
     {
+        var outcome = TrySetState(taskPath, state);
+        if (!outcome.IsSuccess)
+        {
+            throw new InvalidOperationException(outcome.ErrorMessage ?? "schtasks failed");
+        }
+    }
+
+    public SetStateOutcome TrySetState(string taskPath, ScheduledTaskState state)
+    {
         ArgumentException.ThrowIfNullOrWhiteSpace(taskPath);
         var flag = state switch
         {
@@ -63,11 +72,24 @@ public sealed class WindowsScheduledTaskManager : IScheduledTaskManager
         };
 
         var (exitCode, _, stderr) = RunSchtasks($"/Change /TN \"{taskPath}\" {flag}");
-        if (exitCode != 0)
+        if (exitCode == 0)
         {
-            throw new InvalidOperationException($"schtasks {flag} on {taskPath} failed (exit {exitCode}): {stderr.Trim()}");
+            return new SetStateOutcome(SetStateResult.Success, null);
         }
+
+        var message = $"schtasks {flag} on {taskPath} failed (exit {exitCode}): {stderr.Trim()}";
+        if (IsAccessDenied(stderr))
+        {
+            return new SetStateOutcome(SetStateResult.AccessDenied, message);
+        }
+
+        return new SetStateOutcome(SetStateResult.Failed, message);
     }
+
+    private static bool IsAccessDenied(string stderr) =>
+        stderr.Contains("Access is denied", StringComparison.OrdinalIgnoreCase)
+        || stderr.Contains("Acceso denegado", StringComparison.OrdinalIgnoreCase)
+        || stderr.Contains("ERROR: 5", StringComparison.OrdinalIgnoreCase);
 
     private static (int ExitCode, string StdOut, string StdErr) RunSchtasks(string arguments)
     {
