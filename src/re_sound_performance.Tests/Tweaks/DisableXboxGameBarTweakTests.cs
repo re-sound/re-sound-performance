@@ -1,7 +1,5 @@
 using FluentAssertions;
 using Microsoft.Win32;
-using re_sound_performance.Core.Backup;
-using re_sound_performance.Core.Registry;
 using re_sound_performance.Core.Tweaks;
 using re_sound_performance.Core.Tweaks.Implementations;
 

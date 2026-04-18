@@ -1,7 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using ModernWpf.Controls;
 using re_sound_performance.Core.Tweaks;
 
 namespace re_sound_performance.Controls;
